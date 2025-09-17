@@ -89,16 +89,6 @@ const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
                   </div>
                 )}
                 
-                {/* Settings Button */}
-                <button
-                  type="button"
-                  className="nav__settings"
-                  onClick={() => setShowSettings(true)}
-                  title="Settings"
-                >
-                  ⚙️
-                </button>
-                
                 <button
                     type="button"
                     className='nav__connect'
@@ -116,6 +106,16 @@ const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
                     Connect Wallet
                 </button>
             )}
+            
+            {/* Settings Button - Always visible and rightmost */}
+            <button
+              type="button"
+              className="nav__settings"
+              onClick={() => setShowSettings(true)}
+              title="Settings"
+            >
+              ⚙️
+            </button>
             
             {authError && (
               <div className="auth-error">

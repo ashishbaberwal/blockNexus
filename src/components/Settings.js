@@ -1,13 +1,22 @@
 import React, { useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useUser } from '../contexts/UserContext';
 
 const Settings = ({ onClose }) => {
   const { darkMode, toggleTheme, theme } = useTheme();
+  const { isAuthenticated } = useUser();
   const [activeTab, setActiveTab] = useState('appearance');
 
   const handleThemeToggle = () => {
     toggleTheme();
   };
+
+  // Reset to appearance tab if user logs out while in settings
+  React.useEffect(() => {
+    if (!isAuthenticated && (activeTab === 'notifications' || activeTab === 'privacy')) {
+      setActiveTab('appearance');
+    }
+  }, [isAuthenticated, activeTab]);
 
   return (
     <div className="modal-overlay">
@@ -27,18 +36,22 @@ const Settings = ({ onClose }) => {
             >
               🎨 Appearance
             </button>
-            <button 
-              className={`tab-button ${activeTab === 'notifications' ? 'active' : ''}`}
-              onClick={() => setActiveTab('notifications')}
-            >
-              🔔 Notifications
-            </button>
-            <button 
-              className={`tab-button ${activeTab === 'privacy' ? 'active' : ''}`}
-              onClick={() => setActiveTab('privacy')}
-            >
-              🔒 Privacy
-            </button>
+            {isAuthenticated && (
+              <button 
+                className={`tab-button ${activeTab === 'notifications' ? 'active' : ''}`}
+                onClick={() => setActiveTab('notifications')}
+              >
+                🔔 Notifications
+              </button>
+            )}
+            {isAuthenticated && (
+              <button 
+                className={`tab-button ${activeTab === 'privacy' ? 'active' : ''}`}
+                onClick={() => setActiveTab('privacy')}
+              >
+                🔒 Privacy
+              </button>
+            )}
           </div>
 
           {/* Settings Content */}
@@ -92,7 +105,7 @@ const Settings = ({ onClose }) => {
               </div>
             )}
 
-            {activeTab === 'notifications' && (
+            {activeTab === 'notifications' && isAuthenticated && (
               <div className="settings-section">
                 <h3>Notification Settings</h3>
                 
@@ -137,7 +150,7 @@ const Settings = ({ onClose }) => {
               </div>
             )}
 
-            {activeTab === 'privacy' && (
+            {activeTab === 'privacy' && isAuthenticated && (
               <div className="settings-section">
                 <h3>Privacy & Security</h3>
                 

@@ -861,6 +861,9 @@ body {
 /* Navigation User Menu */
 .nav__user {
   position: relative;
+  display: flex;
+  align-items: center;
+  gap: 15px; /* Add gap between connect wallet and settings */
 }
 
 .user-menu {
@@ -1230,6 +1233,30 @@ input:checked + .toggle-slider:before {
   }
 }
 
+/* Dark mode specific styles for Settings Modal */
+:root.dark-theme .settings-modal h2 {
+  color: #FFFFFF !important;
+}
+
+:root.dark-theme .settings-section h3 {
+  color: #FFFFFF !important;
+}
+
+:root.dark-theme .setting-info h4 {
+  color: #FFFFFF !important;
+}
+
+:root.dark-theme .btn--secondary {
+  color: #FFFFFF !important;
+  background: var(--clr-light-grey) !important;
+  border-color: var(--clr-grey) !important;
+}
+
+:root.dark-theme .btn--secondary:hover {
+  background: var(--clr-orange) !important;
+  color: #FFFFFF !important;
+}
+
 /* Profile Modal */
 .profile__header {
   display: flex;
@@ -1550,14 +1577,14 @@ header {
 }
 
 .header__search {
-  padding: 25px;
-  min-width: 40%;
+  padding: 20px 25px; /* Reduced vertical padding from 25px to 20px */
+  min-width: 35%; /* Reduced from 40% to 35% to make it thinner */
   border: 2px solid var(--clr-glass-border);
   border-radius: 20px;
   background: var(--clr-glass-bg);
   color: var(--clr-black); /* Ensure text is readable in both themes */
   font-family: "Open Sans";
-  font-size: 1.25em;
+  font-size: 1.1em; /* Slightly reduced font size */
   font-weight: 600;
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
@@ -1571,7 +1598,7 @@ header {
 
 .header__search::placeholder {
   font-family: "Open Sans";
-  font-size: 1.25em;
+  font-size: 1.1em; /* Reduced to match input font size */
   font-weight: 600;
   color: var(--clr-grey);
 }
@@ -1828,6 +1855,16 @@ header {
   .nav__links {
     display: none;
   }
+  
+  .header__search {
+    min-width: 70%; /* Wider on mobile for better usability */
+    padding: 18px 20px; /* Slightly smaller padding on mobile */
+    font-size: 1em; /* Smaller font on mobile */
+  }
+  
+  .header__search::placeholder {
+    font-size: 1em;
+  }
 }
 
 /* ------------------------------------------------------ */
@@ -1924,7 +1961,7 @@ header {
 
 /* Featured Properties */
 .featured {
-  padding: 40px 0; /* Reduced from 80px to 40px to decrease gap */
+  padding: 15px 0; /* Reduced from 80px to 40px to decrease gap */
   background: var(--clr-orange-translucent);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
