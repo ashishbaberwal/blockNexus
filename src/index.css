@@ -1924,7 +1924,7 @@ header {
 
 /* Featured Properties */
 .featured {
-  padding: 80px 0;
+  padding: 40px 0; /* Reduced from 80px to 40px to decrease gap */
   background: var(--clr-orange-translucent);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
@@ -1942,6 +1942,16 @@ header {
   font-weight: 700;
   margin-bottom: 15px;
   color: var(--clr-black);
+}
+
+/* Dark mode specific styling for Featured Properties heading */
+:root.dark-theme .featured h2 {
+  color: #FFFFFF !important;
+}
+
+/* Dark mode styling for Featured Properties paragraph */
+:root.dark-theme .featured p {
+  color: #E2E8F0 !important; /* Lighter grey for better readability in dark mode */
 }
 
 .featured p {
