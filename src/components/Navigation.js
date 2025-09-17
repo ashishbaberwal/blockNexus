@@ -76,36 +76,38 @@ const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
           </div>
 
           <div className="nav__user">
-            {account ? (
-              <div className="user-menu">
-                {isAuthenticated && user && (
-                  <div className="user-info">
-                    <div className="user-avatar" onClick={handleProfileClick}>
-                      {user.firstName?.charAt(0)}{user.lastName?.charAt(0)}
+            <div className="nav__user-content">
+              {account ? (
+                <div className="user-menu">
+                  {isAuthenticated && user && (
+                    <div className="user-info">
+                      <div className="user-avatar" onClick={handleProfileClick}>
+                        {user.firstName?.charAt(0)}{user.lastName?.charAt(0)}
+                      </div>
+                      <span className="user-name" onClick={handleProfileClick}>
+                        {user.firstName}
+                      </span>
                     </div>
-                    <span className="user-name" onClick={handleProfileClick}>
-                      {user.firstName}
-                    </span>
-                  </div>
-                )}
-                
-                <button
-                    type="button"
-                    className='nav__connect'
-                    onClick={isAuthenticated ? handleProfileClick : connectHandler}
-                >
-                    {getUserDisplayName()}
-                </button>
-              </div>
-            ) : (
-                <button
-                    type="button"
-                    className='nav__connect'
-                    onClick={connectHandler}
-                >
-                    Connect Wallet
-                </button>
-            )}
+                  )}
+                  
+                  <button
+                      type="button"
+                      className='nav__connect'
+                      onClick={isAuthenticated ? handleProfileClick : connectHandler}
+                  >
+                      {getUserDisplayName()}
+                  </button>
+                </div>
+              ) : (
+                  <button
+                      type="button"
+                      className='nav__connect'
+                      onClick={connectHandler}
+                  >
+                      Connect Wallet
+                  </button>
+              )}
+            </div>
             
             {/* Settings Button - Always visible and rightmost */}
             <button
@@ -144,6 +146,7 @@ const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
       {showSettings && (
         <Settings 
           onClose={() => setShowSettings(false)}
+          account={account}
         />
       )}
     </>

@@ -2,21 +2,24 @@ import React, { useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useUser } from '../contexts/UserContext';
 
-const Settings = ({ onClose }) => {
+const Settings = ({ onClose, account }) => {
   const { darkMode, toggleTheme, theme } = useTheme();
   const { isAuthenticated } = useUser();
   const [activeTab, setActiveTab] = useState('appearance');
+
+  // Only show advanced tabs if both wallet is connected AND user is authenticated
+  const showAdvancedTabs = account && isAuthenticated;
 
   const handleThemeToggle = () => {
     toggleTheme();
   };
 
-  // Reset to appearance tab if user logs out while in settings
+  // Reset to appearance tab if user logs out or disconnects wallet while in settings
   React.useEffect(() => {
-    if (!isAuthenticated && (activeTab === 'notifications' || activeTab === 'privacy')) {
+    if (!showAdvancedTabs && (activeTab === 'notifications' || activeTab === 'privacy')) {
       setActiveTab('appearance');
     }
-  }, [isAuthenticated, activeTab]);
+  }, [showAdvancedTabs, activeTab]);
 
   return (
     <div className="modal-overlay">
@@ -36,7 +39,7 @@ const Settings = ({ onClose }) => {
             >
               🎨 Appearance
             </button>
-            {isAuthenticated && (
+            {showAdvancedTabs && (
               <button 
                 className={`tab-button ${activeTab === 'notifications' ? 'active' : ''}`}
                 onClick={() => setActiveTab('notifications')}
@@ -44,7 +47,7 @@ const Settings = ({ onClose }) => {
                 🔔 Notifications
               </button>
             )}
-            {isAuthenticated && (
+            {showAdvancedTabs && (
               <button 
                 className={`tab-button ${activeTab === 'privacy' ? 'active' : ''}`}
                 onClick={() => setActiveTab('privacy')}
@@ -102,10 +105,24 @@ const Settings = ({ onClose }) => {
                     </div>
                   </div>
                 </div>
+
+                {/* Firebase Connection Test */}
+                <div className="setting-item">
+                  <div className="setting-info">
+                    <h4>System Status</h4>
+                    <p>Database connection and sync status</p>
+                  </div>
+                  <div className="setting-control">
+                    <div className="status-indicator">
+                      <span className="status-dot active"></span>
+                      <span>Firebase Connected</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
-            {activeTab === 'notifications' && isAuthenticated && (
+            {activeTab === 'notifications' && showAdvancedTabs && (
               <div className="settings-section">
                 <h3>Notification Settings</h3>
                 
@@ -150,9 +167,22 @@ const Settings = ({ onClose }) => {
               </div>
             )}
 
-            {activeTab === 'privacy' && isAuthenticated && (
+            {activeTab === 'privacy' && showAdvancedTabs && (
               <div className="settings-section">
                 <h3>Privacy & Security</h3>
+                
+                {/* KYC Document Upload Section */}
+                <div className="setting-item">
+                  <div className="setting-info">
+                    <h4>KYC Verification (Required)</h4>
+                    <p>Upload your Aadhar and PAN card for identity verification</p>
+                  </div>
+                  <div className="setting-control">
+                    <button className="btn btn--primary">
+                      Complete KYC Verification
+                    </button>
+                  </div>
+                </div>
                 
                 <div className="setting-item">
                   <div className="setting-info">

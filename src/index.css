@@ -9,8 +9,10 @@
 :root {
   --clr-white: #FFFFFF;
   --clr-black: #2C2C2C;
+  --clr-dark: #1A1A1A;
   --clr-grey: #6B6B6B;
   --clr-light-grey: #F5F5F5;
+  --clr-grey-light: #E2E8F0;
   --clr-orange: #0A64BC;
   --clr-orange-light: #3B82F6;
   --clr-orange-dark: #064B8A;
@@ -27,8 +29,10 @@
 :root.dark-theme {
   --clr-white: #1A202C;
   --clr-black: #F7FAFC;
+  --clr-dark: #FFFFFF;
   --clr-grey: #A0AEC0;
   --clr-light-grey: #2D3748;
+  --clr-grey-light: #4A5568;
   --clr-orange: #0A64BC;
   --clr-orange-light: #3B82F6;
   --clr-orange-dark: #064B8A;
@@ -863,7 +867,19 @@ body {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 15px; /* Add gap between connect wallet and settings */
+  justify-content: flex-end;
+  min-height: 60px; /* Ensure consistent height */
+}
+
+.nav__user-content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.nav__settings {
+  order: 999; /* Always place settings last */
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
 .user-menu {
@@ -1231,6 +1247,26 @@ input:checked + .toggle-slider:before {
     flex-direction: column;
     gap: 15px;
   }
+}
+
+/* Status Indicator */
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9em;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--clr-grey);
+}
+
+.status-dot.active {
+  background: #4CAF50;
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
 }
 
 /* Dark mode specific styles for Settings Modal */
@@ -1785,6 +1821,18 @@ header {
   margin-left: 40px;
 }
 
+/* Dark mode styles for home overview */
+:root.dark-theme .home__overview h1,
+:root.dark-theme .home__overview h2,
+:root.dark-theme .home__overview p,
+:root.dark-theme .home__overview li {
+  color: #FFFFFF;
+}
+
+:root.dark-theme .home__overview strong {
+  color: var(--clr-blue);
+}
+
 .home__buy,
 .home__contact,
 .home__owned {
@@ -1875,7 +1923,7 @@ header {
 }
 
 .hero {
-  min-height: 60vh;
+  min-height: 45vh; /* Reduced from 60vh to 45vh */
   display: flex;
   align-items: center;
   justify-content: center;
