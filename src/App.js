@@ -3,7 +3,8 @@ import { ethers } from 'ethers';
 
 // Components
 import Navigation from './components/Navigation';
-import Search from './components/Search';
+import HomePage from './components/HomePage';
+import PropertiesPage from './components/PropertiesPage';
 import Home from './components/Home';
 
 // ABIs
@@ -22,6 +23,7 @@ function App() {
   const [homes, setHomes] = useState([])
   const [home, setHome] = useState({})
   const [toggle, setToggle] = useState(false)
+  const [currentPage, setCurrentPage] = useState('home')
 
   const loadBlockchainData = async () => {
     const provider = new ethers.BrowserProvider(window.ethereum)
@@ -60,37 +62,27 @@ function App() {
     toggle ? setToggle(false) : setToggle(true)
   }
 
+  const renderPage = () => {
+    switch(currentPage) {
+      case 'home':
+        return <HomePage homes={homes} togglePop={togglePop} setCurrentPage={setCurrentPage} />;
+      case 'properties':
+        return <PropertiesPage homes={homes} togglePop={togglePop} />;
+      default:
+        return <HomePage homes={homes} togglePop={togglePop} setCurrentPage={setCurrentPage} />;
+    }
+  }
+
   return (
     <div>
-      <Navigation account={account} setAccount={setAccount} />
-      <Search />
-
-      <div className='cards__section'>
-
-        <h3>Homes For You</h3>
-
-        <hr />
-
-        <div className='cards'>
-          {homes.map((home, index) => (
-            <div className='card' key={index} onClick={() => togglePop(home)}>
-              <div className='card__image'>
-                <img src={home.image} alt='Home' />
-              </div>
-              <div className='card__info'>
-                <h4>{home.attributes[0].value} ETH</h4>
-                <p>
-                  <strong>{home.attributes[2].value}</strong> bds |
-                  <strong>{home.attributes[3].value}</strong> ba |
-                  <strong>{home.attributes[4].value}</strong> sqft
-                </p>
-                <p>{home.address}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-      </div>
+      <Navigation 
+        account={account} 
+        setAccount={setAccount} 
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+      />
+      
+      {renderPage()}
 
       {toggle && (
         <Home home={home} provider={provider} account={account} escrow={escrow} togglePop={togglePop} />
