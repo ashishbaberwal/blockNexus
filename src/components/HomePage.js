@@ -1,9 +1,33 @@
+import { useState, useMemo } from 'react';
 import Search from './Search';
 
 const HomePage = ({ homes, togglePop, setCurrentPage }) => {
+  const [searchTerm, setSearchTerm] = useState('');
 
-  // Get featured properties (first 3 properties)
-  const featuredHomes = homes.slice(0, 3);
+  // Filter homes based on search term
+  const filteredHomes = useMemo(() => {
+    if (!searchTerm.trim()) return homes;
+    
+    const term = searchTerm.toLowerCase();
+    return homes.filter(home => {
+      return (
+        home.name?.toLowerCase().includes(term) ||
+        home.address?.toLowerCase().includes(term) ||
+        home.description?.toLowerCase().includes(term) ||
+        home.attributes?.some(attr => 
+          attr.trait_type?.toLowerCase().includes(term) ||
+          attr.value?.toString().toLowerCase().includes(term)
+        )
+      );
+    });
+  }, [homes, searchTerm]);
+
+  // Get featured properties (first 3 properties from filtered results)
+  const featuredHomes = filteredHomes.slice(0, 3);
+
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+  };
 
   return (
     <div className="homepage">
@@ -28,8 +52,8 @@ const HomePage = ({ homes, togglePop, setCurrentPage }) => {
           </p>
           <div className="hero__stats">
             <div className="stat">
-              <h3>{homes.length}</h3>
-              <p>Properties Available</p>
+              <h3>{filteredHomes.length}</h3>
+              <p>Properties {searchTerm ? 'Found' : 'Available'}</p>
             </div>
             <div className="stat">
               <h3>100%</h3>
@@ -44,41 +68,66 @@ const HomePage = ({ homes, togglePop, setCurrentPage }) => {
       </div>
 
       {/* Search Section */}
-      <Search />
+      <Search onSearch={handleSearch} homes={homes} />
 
-      {/* Featured Properties */}
+      {/* Featured Properties / Search Results */}
       <section className="featured">
         <div className="featured__container">
-          <h2>Featured Properties</h2>
-          <p>Handpicked properties with the best value and location</p>
+          <h2>{searchTerm ? `Search Results for "${searchTerm}"` : 'Featured Properties'}</h2>
+          <p>{searchTerm ? `Found ${filteredHomes.length} matching properties` : 'Handpicked properties with the best value and location'}</p>
           
-          <div className="featured__grid">
-            {featuredHomes.map((home, index) => (
-              <div className="featured__card" key={index} onClick={() => togglePop(home)}>
-                <div className="featured__image">
-                  <img src={home.image} alt={home.name} />
-                  <div className="featured__badge">Featured</div>
-                </div>
-                <div className="featured__info">
-                  <h3>{home.name}</h3>
-                  <p className="featured__address">{home.address}</p>
-                  <div className="featured__details">
-                    <span>{home.attributes[2].value} bed</span>
-                    <span>{home.attributes[3].value} bath</span>
-                    <span>{home.attributes[4].value} sqft</span>
+          {filteredHomes.length > 0 ? (
+            <div className="featured__grid">
+              {featuredHomes.map((home, index) => (
+                <div className="featured__card" key={index} onClick={() => togglePop(home)}>
+                  <div className="featured__image">
+                    <img src={home.image} alt={home.name} />
+                    <div className="featured__badge">{searchTerm ? 'Match' : 'Featured'}</div>
                   </div>
-                  <div className="featured__price">{home.attributes[0].value} ETH</div>
+                  <div className="featured__info">
+                    <h3>{home.name}</h3>
+                    <p className="featured__address">{home.address}</p>
+                    <div className="featured__details">
+                      <span>{home.attributes[2].value} bed</span>
+                      <span>{home.attributes[3].value} bath</span>
+                      <span>{home.attributes[4].value} sqft</span>
+                    </div>
+                    <div className="featured__price">{home.attributes[0].value} ETH</div>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : searchTerm ? (
+            <div className="no-results">
+              <div className="no-results__icon">🏠</div>
+              <h3>No properties found</h3>
+              <p>Try adjusting your search terms or browse all properties</p>
+              <button 
+                className="btn btn--primary"
+                onClick={() => setSearchTerm('')}
+              >
+                Clear Search
+              </button>
+            </div>
+          ) : null}
 
-          <button 
-            className="featured__view-all"
-            onClick={() => setCurrentPage('properties')}
-          >
-            View All Properties
-          </button>
+          {!searchTerm && (
+            <button 
+              className="featured__view-all"
+              onClick={() => setCurrentPage('properties')}
+            >
+              View All Properties
+            </button>
+          )}
+
+          {searchTerm && filteredHomes.length > 3 && (
+            <button 
+              className="featured__view-all"
+              onClick={() => setCurrentPage('properties')}
+            >
+              View All {filteredHomes.length} Results
+            </button>
+          )}
         </div>
       </section>
 

@@ -5,10 +5,10 @@ import { useTheme } from '../contexts/ThemeContext';
 import UserRegistration from './UserRegistration';
 import UserProfile from './UserProfile';
 import Settings from './Settings';
+import NotificationSystem from './NotificationSystem';
 
 const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
   const { user, isAuthenticated, loginUser, checkUserExists } = useUser();
-  const { darkMode } = useTheme();
   const [showRegistration, setShowRegistration] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -109,15 +109,19 @@ const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
               )}
             </div>
             
-            {/* Settings Button - Always visible and rightmost */}
-            <button
-              type="button"
-              className="nav__settings"
-              onClick={() => setShowSettings(true)}
-              title="Settings"
-            >
-              ⚙️
-            </button>
+            {/* Notification and Settings */}
+            <div className="nav__actions">
+              {account && isAuthenticated && <NotificationSystem />}
+              
+              <button
+                type="button"
+                className="nav__settings"
+                onClick={() => setShowSettings(true)}
+                title="Settings"
+              >
+                ⚙️
+              </button>
+            </div>
             
             {authError && (
               <div className="auth-error">
