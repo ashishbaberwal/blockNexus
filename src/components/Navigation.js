@@ -24,6 +24,15 @@ const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
             </li>
             <li><button type="button" className="nav__link">Rent</button></li>
             <li><button type="button" className="nav__link">Sell</button></li>
+            <li>
+              <button 
+                type="button" 
+                className={`nav__link ${currentPage === 'about' ? 'nav__link--active' : ''}`}
+                onClick={() => handleNavigation('about')}
+              >
+                About
+              </button>
+            </li>
         </ul>
 
         <div className='nav__brand' onClick={() => handleNavigation('home')}>
