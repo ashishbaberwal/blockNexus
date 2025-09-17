@@ -9,9 +9,9 @@ const Navigation = ({ account, setAccount }) => {
   return (
     <nav>
         <ul className='nav__links'>
-            <li><a href="#">Buy</a></li>
-            <li><a href="#">Rent</a></li>
-            <li><a href="#">Sell</a></li>
+            <li><button type="button" className="nav__link">Buy</button></li>
+            <li><button type="button" className="nav__link">Rent</button></li>
+            <li><button type="button" className="nav__link">Sell</button></li>
         </ul>
 
         <div className='nav__brand'>

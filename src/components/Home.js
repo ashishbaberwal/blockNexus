@@ -1,5 +1,4 @@
-import { ethers } from 'ethers';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 import close from '../assets/close.svg';
 
@@ -8,19 +7,16 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
     const [hasLended, setHasLended] = useState(false)
     const [hasInspected, setHasInspected] = useState(false)
     const [hasSold, setHasSold] = useState(false)
-
-    const [buyer, setBuyer] = useState(null)
     const [lender, setLender] = useState(null)
     const [inspector, setInspector] = useState(null)
     const [seller, setSeller] = useState(null)
 
     const [owner, setOwner] = useState(null)
   
-    const fetchDetails = async () => {
+    const fetchDetails = useCallback(async () => {
       // -- Buyer
 
       const buyer = await escrow.buyer(home.id)
-      setBuyer(buyer)
 
       const hasBought = await escrow.approval(home.id, buyer)
       setHasBought(hasBought)
@@ -48,14 +44,14 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
 
       const hasInspected = await escrow.inspectionPassed(home.id)
       setHasInspected(hasInspected)
-    }
+    }, [escrow, home.id])
 
-    const fetchOwner = async () => {
+    const fetchOwner = useCallback(async () => {
       if (await escrow.isListed(home.id)) return 
 
       const owner = await escrow.buyer(home.id)
       setOwner(owner)
-    }
+    }, [escrow, home.id])
 
     const buyHandler = async () => {
       const escrowAmount = await escrow.escrowAmount(home.id)
@@ -113,7 +109,7 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
     useEffect(() => {
       fetchDetails()
       fetchOwner()
-    }, [hasSold])
+    }, [fetchDetails, fetchOwner, hasSold])
 
     return (
         <div className="home">

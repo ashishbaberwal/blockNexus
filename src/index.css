@@ -71,6 +71,23 @@ nav {
   color: var(--clr-blue);
 }
 
+.nav__link {
+  background: none;
+  border: none;
+  font-family: "Open Sans";
+  font-size: 1em;
+  font-weight: 400;
+  text-decoration: none;
+  color: var(--clr-black);
+  cursor: pointer;
+  padding: 5px 10px;
+  transition: color 250ms ease;
+}
+
+.nav__link:hover {
+  color: var(--clr-blue);
+}
+
 .nav__connect {
   width: 175px;
   height: 50px;
