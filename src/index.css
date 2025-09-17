@@ -147,12 +147,15 @@ nav {
 /* -- HEADER -- */
 
 header {
-  background-image: url("./assets/houses.png");
-  background-position: center;
-  background-size: cover;
+  background: var(--clr-orange-translucent);
   min-height: 40vh;
-
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
 }
 
 .header__title {
@@ -453,7 +456,6 @@ header {
 }
 
 .hero {
-  background: linear-gradient(135deg, var(--clr-orange) 0%, var(--clr-orange-light) 50%, var(--clr-orange-dark) 100%);
   min-height: 60vh;
   display: flex;
   align-items: center;
@@ -464,23 +466,36 @@ header {
   overflow: hidden;
 }
 
-.hero::before {
-  content: '';
+.hero__video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  height: auto;
+  transform: translateX(-50%) translateY(-50%);
+  z-index: 1;
+  object-fit: cover;
+}
+
+.hero__overlay {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: url("./assets/houses.png");
-  background-size: cover;
-  background-position: center;
-  opacity: 0.1;
-  z-index: 1;
+  background: rgba(0, 0, 0, 0.4); /* Dark overlay for text readability */
+  z-index: 2;
+}
+
+.hero::before {
+  display: none; /* Remove the old gradient background */
 }
 
 .hero__content {
   position: relative;
-  z-index: 2;
+  z-index: 3;
   max-width: 800px;
   padding: 0 20px;
 }
@@ -490,13 +505,15 @@ header {
   font-weight: 800;
   margin-bottom: 20px;
   line-height: 1.2;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
 }
 
 .hero__subtitle {
   font-size: 1.3em;
   font-weight: 400;
   margin-bottom: 40px;
-  opacity: 0.9;
+  opacity: 0.95;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
 }
 
 .hero__stats {
@@ -510,11 +527,13 @@ header {
   font-size: 2.5em;
   font-weight: 700;
   margin-bottom: 10px;
+  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.8);
 }
 
 .stat p {
   font-size: 1em;
-  opacity: 0.8;
+  opacity: 0.9;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
 }
 
 /* Featured Properties */

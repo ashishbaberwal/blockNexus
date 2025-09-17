@@ -9,6 +9,18 @@ const HomePage = ({ homes, togglePop, setCurrentPage }) => {
     <div className="homepage">
       {/* Hero Section */}
       <div className="hero">
+        <video 
+          className="hero__video"
+          autoPlay 
+          loop 
+          muted 
+          playsInline
+        >
+          <source src="/hero-video.webm" type="video/webm" />
+          {/* Fallback for browsers that don't support video */}
+          Your browser does not support the video tag.
+        </video>
+        <div className="hero__overlay"></div>
         <div className="hero__content">
           <h1 className="hero__title">Find Your Dream Home on the Blockchain</h1>
           <p className="hero__subtitle">
