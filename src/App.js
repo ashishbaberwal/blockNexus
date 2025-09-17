@@ -7,6 +7,10 @@ import HomePage from './components/HomePage';
 import PropertiesPage from './components/PropertiesPage';
 import Home from './components/Home';
 
+// Context
+import { UserProvider } from './contexts/UserContext';
+import { ThemeProvider } from './contexts/ThemeContext';
+
 // ABIs
 import RealEstate from './abis/RealEstate.json'
 import Escrow from './abis/Escrow.json'
@@ -74,20 +78,24 @@ function App() {
   }
 
   return (
-    <div>
-      <Navigation 
-        account={account} 
-        setAccount={setAccount} 
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
-      />
-      
-      {renderPage()}
+    <ThemeProvider>
+      <UserProvider>
+        <div>
+          <Navigation 
+            account={account} 
+            setAccount={setAccount} 
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+          />
+          
+          {renderPage()}
 
-      {toggle && (
-        <Home home={home} provider={provider} account={account} escrow={escrow} togglePop={togglePop} />
-      )}
-    </div>
+          {toggle && (
+            <Home home={home} provider={provider} account={account} escrow={escrow} togglePop={togglePop} />
+          )}
+        </div>
+      </UserProvider>
+    </ThemeProvider>
   );
 }
 
