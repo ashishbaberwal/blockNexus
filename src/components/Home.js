@@ -305,23 +305,27 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
                 </div>
               ) : (
                 <div>
-                  {(account === inspector) ? (
+                  {(account && account === inspector) ? (
                     <button className="home__buy" onClick={inspectHandler} disabled={hasInspected}>
                       Approve Inspection
                     </button>
                   
-                  ) : (account === lender) ? (
+                  ) : (account && account === lender) ? (
                     <button className="home__buy" onClick={lendHandler} disabled={hasLended}>
                       Approve & Lend
                     </button>
                     
-                  ) : (account === seller) ? (
+                  ) : (account && account === seller) ? (
                     <button className="home__buy" onClick={sellHandler} disabled={hasSold}>
                       Approve & Sell
                     </button>
-                  ): (
+                  ) : account ? (
                     <button className="home__buy" onClick={buyHandler} disabled={hasBought}>
                       Buy
+                    </button>
+                  ) : (
+                    <button className="home__buy" disabled>
+                      Connect Wallet to Buy
                     </button>
                   )}
 
