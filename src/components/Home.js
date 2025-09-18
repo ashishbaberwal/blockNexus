@@ -88,17 +88,17 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
     const loadTransaction = useCallback(async () => {
       try {
         const result = await getTransactionByProperty(home.id.toString());
-        if (result.success && result.transaction) {
-          setTransaction(result.transaction);
+        if (result) {
+          setTransaction(result);
           
           // Determine user role in this transaction
-          if (result.transaction.buyerAddress === account) {
+          if (result.buyerAddress === account) {
             setUserRole('buyer');
-          } else if (result.transaction.sellerAddress === account) {
+          } else if (result.sellerAddress === account) {
             setUserRole('seller');
-          } else if (result.transaction.lenderAddress === account) {
+          } else if (result.lenderAddress === account) {
             setUserRole('lender');
-          } else if (result.transaction.inspectorAddress === account) {
+          } else if (result.inspectorAddress === account) {
             setUserRole('inspector');
           }
         }
@@ -140,9 +140,6 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
         };
 
         const createResult = await createTransaction(transactionData);
-        if (!createResult.success) {
-          throw new Error('Failed to create transaction record');
-        }
 
         // Buyer deposit earnest
         let transaction = await escrow.connect(signer).depositEarnest(home.id, { value: escrowAmount })
@@ -157,7 +154,7 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
         // Send notifications to all parties
         await sendTransactionNotification(lender, 'lender_approval_required', {
           propertyName: home.name,
-          transactionId: createResult.transactionId,
+          transactionId: createResult.id,
           propertyId: home.id.toString()
         });
 
