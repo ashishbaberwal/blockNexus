@@ -41,10 +41,10 @@ In a separate terminal execute:
 
 This demo uses a Hardhat deployment script that initializes 4 predefined accounts:
 
-- **`buyer`**: Account with index 0 in Hardhat  
-- **`seller`**: Account with index 1 in Hardhat  
-- **`inspector`**: Account with index 2 in Hardhat  
-- **`lender`**: Account with index 3 in Hardhat  
+- **`buyer`**: Account with index 8 in Hardhat  
+- **`seller`**: Account with index 9 in Hardhat  
+- **`inspector`**: Account with index 10 in Hardhat  
+- **`lender`**: Account with index 11 in Hardhat  
 
 ### Prerequisites
 
@@ -80,7 +80,7 @@ This demo uses a Hardhat deployment script that initializes 4 predefined account
 After completing the last step, the property details should display:  
 **"Owned by 0xf39F...2266"**  
 
-This indicates that the property is now owned by the `buyer` account (`0xf39F...2266`), which corresponds to index 0 in Hardhat.  
+This indicates that the property is now owned by the `buyer` account, which corresponds to index 8 in Hardhat.  
 
 **Note**: Hardhat initializes account addresses in a predictable way when starting up, ensuring consistent behavior during each run. 
  

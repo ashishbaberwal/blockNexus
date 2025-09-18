@@ -9,7 +9,7 @@ const UserRegistration = ({ onClose, walletAddress }) => {
     lastName: '',
     email: '',
     phone: '',
-    userType: 'buyer', // buyer, seller, agent, investor
+    userType: 'buyer', // buyer, seller, agent, investor, inspector
     bio: '',
     location: '',
     preferences: {
@@ -214,6 +214,7 @@ const UserRegistration = ({ onClose, walletAddress }) => {
                   <option value="seller">Seller - Looking to sell properties</option>
                   <option value="agent">Real Estate Agent</option>
                   <option value="investor">Investor - Looking for investment opportunities</option>
+                  <option value="inspector">Inspector/Government Official - Property verification & compliance</option>
                 </select>
               </div>
 

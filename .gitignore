@@ -47,3 +47,4 @@ artifacts
 ignition/deployments
 
 .history
+*.log
