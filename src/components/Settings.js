@@ -2,14 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useUser } from '../contexts/UserContext';
 import KYCVerification from './KYCVerification';
-import FirebaseTestPanel from './FirebaseTestPanel';
 
 const Settings = ({ onClose, account }) => {
   const { darkMode, toggleTheme, theme } = useTheme();
   const { isAuthenticated, user, updateUser } = useUser();
   const [activeTab, setActiveTab] = useState('appearance');
   const [showKYC, setShowKYC] = useState(false);
-  const [showFirebaseTest, setShowFirebaseTest] = useState(false);
 
   // Only show advanced tabs if both wallet is connected AND user is authenticated
   const showAdvancedTabs = account && isAuthenticated;
@@ -131,16 +129,16 @@ const Settings = ({ onClose, account }) => {
                     </div>
                   </div>
 
-                  {/* Firebase Connection Test */}
+                  {/* System Status */}
                   <div className="setting-item">
                     <div className="setting-info">
                       <h4>System Status</h4>
-                      <p>Database connection and sync status</p>
+                      <p>Local storage and system status</p>
                     </div>
                     <div className="setting-control">
                       <div className="status-indicator">
                         <span className="status-dot active"></span>
-                        <span>Firebase Connected</span>
+                        <span>localStorage Active</span>
                       </div>
                     </div>
                   </div>
@@ -263,24 +261,22 @@ const Settings = ({ onClose, account }) => {
                   
                   <div className="setting-item">
                     <div className="setting-info">
-                      <h4>Firebase Connection Test</h4>
-                      <p>Test Firebase services including Firestore, Storage, and Authentication</p>
+                      <h4>LocalStorage Data Test</h4>
+                      <p>View and manage localStorage data including KYC documents</p>
                     </div>
                     <div className="setting-control">
                       <button 
                         className="btn btn--secondary"
-                        onClick={() => setShowFirebaseTest(!showFirebaseTest)}
+                        onClick={() => {
+                          const data = localStorage.getItem('blockNexus_kyc_data');
+                          console.log('LocalStorage KYC Data:', data ? JSON.parse(data) : 'No data found');
+                          alert('Check console for localStorage data');
+                        }}
                       >
-                        {showFirebaseTest ? 'Hide Firebase Test' : 'Show Firebase Test'}
+                        View localStorage Data
                       </button>
                     </div>
                   </div>
-
-                  {showFirebaseTest && (
-                    <div className="firebase-test-container">
-                      <FirebaseTestPanel inSettings={true} />
-                    </div>
-                  )}
 
                   <div className="setting-item">
                     <div className="setting-info">

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getDoc, doc } from 'firebase/firestore';
-import { db } from '../firebase/config';
+import localDocumentStorage from '../utils/localDocumentStorage';
 import './KYCDocumentViewer.css';
 
 const KYCDocumentViewer = ({ transaction, currentUserRole, currentUserAddress }) => {
@@ -8,6 +7,7 @@ const KYCDocumentViewer = ({ transaction, currentUserRole, currentUserAddress })
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('buyer');
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (transaction) {
       loadKYCData();
@@ -26,11 +26,11 @@ const KYCDocumentViewer = ({ transaction, currentUserRole, currentUserAddress })
 
       const kycPromises = Object.entries(participants).map(async ([role, address]) => {
         if (address) {
-          const userDoc = await getDoc(doc(db, 'users', address));
+          const userData = localDocumentStorage.getKYCData(address);
           return {
             role,
             address,
-            data: userDoc.exists() ? userDoc.data() : null
+            data: userData
           };
         }
         return { role, address: null, data: null };

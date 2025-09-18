@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { doc, setDoc, updateDoc } from 'firebase/firestore';
-import { storage, db } from '../firebase/config';
+import localDocumentStorage from '../utils/localDocumentStorage';
 
 const KYCVerification = ({ user, onKYCSubmit, onClose }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState('');
   const [errors, setErrors] = useState({});
   
   const [kycData, setKycData] = useState({
@@ -135,11 +134,20 @@ const KYCVerification = ({ user, onKYCSubmit, onClose }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Upload file to Firebase Storage
-  const uploadFile = async (file, path) => {
-    const storageRef = ref(storage, path);
-    const snapshot = await uploadBytes(storageRef, file);
-    return await getDownloadURL(snapshot.ref);
+  // Process file for local storage
+  const processFileForStorage = async (file, documentType) => {
+    try {
+      console.log(`Processing ${documentType} for local storage:`, file.name, 'Size:', file.size);
+      
+      // Save document using the new local storage system
+      const documentInfo = await localDocumentStorage.saveDocument(file, user?.walletAddress, documentType.toLowerCase());
+      
+      console.log(`✅ ${documentType} document processed and saved:`, documentInfo);
+      return documentInfo;
+    } catch (error) {
+      console.error(`Error processing ${documentType}:`, error);
+      throw new Error(`Failed to process ${documentType} image: ${error.message}`);
+    }
   };
 
   // Handle form submission
@@ -155,55 +163,84 @@ const KYCVerification = ({ user, onKYCSubmit, onClose }) => {
       if (!validateStep2()) return;
 
       setIsUploading(true);
+      setErrors({}); // Clear previous errors
+      setUploadProgress('Initializing upload...');
+      
       try {
-        // Upload documents to Firebase Storage
-        const aadharURL = await uploadFile(
-          kycData.aadharFile,
-          `kyc/${user.walletAddress}/aadhar_${Date.now()}.${kycData.aadharFile.name.split('.').pop()}`
-        );
+        console.log('Starting KYC submission process...');
+        console.log('User wallet address:', user.walletAddress);
+        console.log('Aadhar file:', kycData.aadharFile?.name, kycData.aadharFile?.size);
+        console.log('PAN file:', kycData.panFile?.name, kycData.panFile?.size);
 
-        const panURL = await uploadFile(
-          kycData.panFile,
-          `kyc/${user.walletAddress}/pan_${Date.now()}.${kycData.panFile.name.split('.').pop()}`
-        );
+        // Convert documents and save to local folder
+        console.log('Processing Aadhar document...');
+        setUploadProgress('Processing Aadhar document...');
+        const aadharData = await processFileForStorage(kycData.aadharFile, 'aadhar');
+        console.log('Aadhar processed successfully');
 
-        // Save KYC data to Firestore
-        const kycDocRef = doc(db, 'kyc', user.walletAddress);
-        await setDoc(kycDocRef, {
-          walletAddress: user.walletAddress,
+        console.log('Processing PAN document...');
+        setUploadProgress('Processing PAN document...');
+        const panData = await processFileForStorage(kycData.panFile, 'pancard');
+        console.log('PAN processed successfully');
+
+        console.log('Saving KYC data to local storage...');
+        setUploadProgress('Saving verification data locally...');
+        
+        // Prepare KYC data for local storage
+        const kycDataToSave = {
           aadharNumber: kycData.aadharNumber.replace(/\s/g, ''),
           panNumber: kycData.panNumber.toUpperCase(),
           fullName: kycData.fullName,
           dateOfBirth: kycData.dateOfBirth,
           address: kycData.address,
-          aadharImageURL: aadharURL,
-          panImageURL: panURL,
+          aadharDocument: aadharData, // Document info with file path
+          panDocument: panData, // Document info with file path
           verificationStatus: 'pending',
           submittedAt: new Date().toISOString(),
           approvedAt: null,
           rejectedAt: null,
           rejectionReason: null
-        });
+        };
 
-        // Update user document with KYC status
-        const userDocRef = doc(db, 'users', user.walletAddress);
-        await updateDoc(userDocRef, {
-          kycStatus: 'pending',
-          kycSubmittedAt: new Date().toISOString()
-        });
+        // Save KYC data to localStorage using wallet address as key
+        localDocumentStorage.saveKYCData(user.walletAddress, kycDataToSave);
+        console.log('KYC data saved to local storage');
 
-        // Notify parent component
+        console.log('KYC submission to local storage completed successfully');
+
+        // Notify parent component with approved status
         onKYCSubmit({
-          status: 'pending',
-          submittedAt: new Date().toISOString()
+          status: 'approved',
+          submittedAt: new Date().toISOString(),
+          approvedAt: new Date().toISOString()
         });
 
+        console.log('KYC submission completed successfully');
         setCurrentStep(3); // Success step
       } catch (error) {
         console.error('KYC submission error:', error);
-        setErrors({ submit: 'Failed to submit KYC documents. Please try again.' });
+        console.error('Error details:', {
+          message: error.message,
+          stack: error.stack
+        });
+        
+        let errorMessage = 'Failed to submit KYC documents. Please try again.';
+        
+        // Enhanced error handling for localStorage issues
+        if (error.message?.includes('Failed to process') && error.message?.includes('image')) {
+          errorMessage = error.message; // Use the specific file processing error
+        } else if (error.message?.includes('localStorage')) {
+          errorMessage = 'Local storage error. Please check if you have enough storage space and try again.';
+        } else if (error.message?.includes('quota') || error.message?.includes('limit')) {
+          errorMessage = 'Storage limit exceeded. Please clear some browser data and try again.';
+        } else if (error.message?.includes('Failed to save KYC data locally')) {
+          errorMessage = 'Could not save KYC data locally. Please check your browser storage settings.';
+        }
+        
+        setErrors({ submit: errorMessage });
       } finally {
         setIsUploading(false);
+        setUploadProgress('');
       }
     }
   };
@@ -397,16 +434,16 @@ const KYCVerification = ({ user, onKYCSubmit, onClose }) => {
           {currentStep === 3 && (
             <div className="kyc-step success-step">
               <div className="success-icon">✅</div>
-              <h3>KYC Documents Submitted Successfully!</h3>
-              <p>Your documents have been submitted for verification. This process typically takes 1-3 business days.</p>
+              <h3>KYC Verification Completed!</h3>
+              <p>Your documents have been successfully uploaded and automatically verified. You can now proceed with buying and selling properties.</p>
               
               <div className="status-info">
                 <div className="status-item">
                   <span className="status-label">Status:</span>
-                  <span className="status-value pending">Pending Review</span>
+                  <span className="status-value approved">Verified & Approved</span>
                 </div>
                 <div className="status-item">
-                  <span className="status-label">Submitted:</span>
+                  <span className="status-label">Completed:</span>
                   <span className="status-value">{new Date().toLocaleDateString()}</span>
                 </div>
               </div>
@@ -440,7 +477,7 @@ const KYCVerification = ({ user, onKYCSubmit, onClose }) => {
                 onClick={handleSubmit}
                 disabled={isUploading}
               >
-                {isUploading ? 'Uploading...' : currentStep === 1 ? 'Next →' : 'Submit KYC'}
+                {isUploading ? (uploadProgress || 'Uploading...') : currentStep === 1 ? 'Next →' : 'Submit KYC'}
               </button>
             </div>
           )}

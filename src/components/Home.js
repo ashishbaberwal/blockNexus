@@ -1,6 +1,4 @@
 import { useEffect, useState, useCallback } from 'react';
-import { getDoc, doc } from 'firebase/firestore';
-import { db } from '../firebase/config';
 import { getTransactionByProperty, createTransaction, updateTransactionStatus, subscribeToTransaction } from '../services/transactionService';
 import { useUser } from '../contexts/UserContext';
 import TransactionProgress from './TransactionProgress';
@@ -65,13 +63,18 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
       const ownerAddress = await escrow.buyer(home.id)
       setOwner(ownerAddress)
       
-      // Fetch owner name from Firebase
+      // Fetch owner name from localStorage
       if (ownerAddress) {
         try {
-          const ownerDoc = await getDoc(doc(db, 'users', ownerAddress));
-          if (ownerDoc.exists()) {
-            const ownerData = ownerDoc.data();
-            setOwnerName(ownerData.fullName || ownerData.name || 'Property Owner');
+          // Try to get user data from localStorage
+          const userData = localStorage.getItem('blockNexusUser');
+          if (userData) {
+            const parsedData = JSON.parse(userData);
+            if (parsedData.walletAddress === ownerAddress) {
+              setOwnerName(parsedData.fullName || parsedData.name || 'Property Owner');
+            } else {
+              setOwnerName(`${ownerAddress.slice(0, 6)}...${ownerAddress.slice(-4)}`);
+            }
           } else {
             setOwnerName(`${ownerAddress.slice(0, 6)}...${ownerAddress.slice(-4)}`);
           }
@@ -114,7 +117,7 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
       const signer = await provider.getSigner()
 
       try {
-        // Create transaction in Firebase first
+        // Create transaction in localStorage first
         const transactionData = {
           propertyId: home.id.toString(),
           propertyName: home.name,
@@ -176,7 +179,7 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
 
         setHasInspected(true)
 
-        // Update transaction status in Firebase
+        // Update transaction status in localStorage
         if (transaction) {
           await updateTransactionStatus(transaction.id, 'inspector_approved', 'inspector');
           
@@ -210,7 +213,7 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
 
         setHasLended(true)
 
-        // Update transaction status in Firebase
+        // Update transaction status in localStorage
         if (transaction) {
           await updateTransactionStatus(transaction.id, 'lender_approved', 'lender');
           await updateTransactionStatus(transaction.id, 'under_inspection', 'system');
@@ -232,6 +235,11 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
     }
 
     const sellHandler = async () => {
+      if (!isAuthenticated || !user?.kycVerified) {
+        alert('Please complete KYC verification before finalizing a sale.');
+        return;
+      }
+
       const signer = await provider.getSigner()
 
       try {
@@ -245,7 +253,7 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
     
         setHasSold(true)
 
-        // Update transaction status in Firebase
+        // Update transaction status in localStorage
         if (transaction) {
           await updateTransactionStatus(transaction.id, 'seller_approved', 'seller');
           await updateTransactionStatus(transaction.id, 'completed', 'system');

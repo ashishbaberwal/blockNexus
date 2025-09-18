@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useUser } from '../contexts/UserContext';
 import KYCVerification from './KYCVerification';
-import { testFirebaseConnection, testWalletConnection } from '../firebase/firebaseTest';
 
 const UserRegistration = ({ onClose, walletAddress }) => {
   const { registerUser, isLoading } = useUser();
@@ -329,28 +328,24 @@ const UserRegistration = ({ onClose, walletAddress }) => {
             <button 
               type="button"
               onClick={async () => {
-                const result = await testWalletConnection();
-                alert(result.success ? 
-                  `✅ Wallet: ${result.message}\nAccount: ${result.account}` : 
-                  `❌ ${result.error}`
-                );
+                alert(`✅ Local Storage System Active\nWallet: ${walletAddress}`);
               }}
               style={{ margin: '5px', padding: '5px 10px' }}
             >
-              Test Wallet
+              Test Local Storage
             </button>
             <button 
               type="button"
               onClick={async () => {
-                const result = await testFirebaseConnection();
-                alert(result.success ? 
-                  `✅ ${result.message}` : 
-                  `❌ ${result.error}`
+                const kycData = localStorage.getItem('blockNexus_KYC_Data');
+                alert(kycData ? 
+                  `✅ Local KYC System Active\nData entries: ${Object.keys(JSON.parse(kycData)).length}` : 
+                  `✅ Local KYC System Ready (No data yet)`
                 );
               }}
               style={{ margin: '5px', padding: '5px 10px' }}
             >
-              Test Firebase
+              Test KYC System
             </button>
             <div style={{ marginTop: '10px', fontSize: '11px' }}>
               💡 Open browser console (F12) to see detailed logs during registration

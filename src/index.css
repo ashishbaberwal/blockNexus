@@ -1592,6 +1592,19 @@ nav {
   font-weight: 600;
 }
 
+/* Dark mode styles for navigation links */
+:root.dark-theme .nav__link {
+  color: #FFFFFF;
+}
+
+:root.dark-theme .nav__link:hover {
+  color: var(--clr-orange);
+}
+
+:root.dark-theme .nav__link--active {
+  color: var(--clr-orange);
+}
+
 .nav__connect {
   width: 175px;
   height: 50px;
@@ -1648,7 +1661,7 @@ header {
 
 .header__search {
   padding: 15px 25px; /* Reduced vertical padding from 20px to 15px (thinner) */
-  min-width: 50%; /* Increased from 35% to 50% (longer) */
+  min-width: 65%; /* Increased from 50% to 65% (longer) */
   border: 2px solid var(--clr-glass-border);
   border-radius: 20px;
   background: var(--clr-glass-bg);
@@ -2008,7 +2021,7 @@ header {
   display: flex;
   background: #F7FAFC;
   border-bottom: 1px solid var(--clr-grey-light);
-  padding: 0 20px;
+  padding: 0 25px; /* Increased from 20px to 25px to prevent clipping */
 }
 
 :root.dark-theme .home__tabs {
@@ -2029,6 +2042,11 @@ header {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-left: 5px; /* Add small left margin to prevent clipping */
+}
+
+.tab-button:first-child {
+  margin-left: 0; /* Remove margin from first tab to maintain alignment */
 }
 
 .tab-button:hover {
@@ -2039,7 +2057,7 @@ header {
 .tab-button.active {
   color: var(--clr-blue);
   border-bottom-color: var(--clr-blue);
-  background: rgba(10, 100, 188, 0.1);
+  background: transparent; /* Remove blue background, keep only border */
 }
 
 :root.dark-theme .tab-button {
@@ -2049,7 +2067,7 @@ header {
 :root.dark-theme .tab-button:hover,
 :root.dark-theme .tab-button.active {
   color: #63B3ED;
-  background: rgba(10, 100, 188, 0.2);
+  background: transparent; /* Remove blue background in dark mode too */
 }
 
 .home__overview {
@@ -2980,8 +2998,8 @@ header {
   color: var(--clr-dark) !important;
 }
 
-/* Firebase Test Container in Settings */
-.firebase-test-container {
+/* LocalStorage Data Display */
+.localStorage-debug-container {
   margin-top: 15px;
   padding: 10px;
   border: 1px solid var(--clr-grey-light);

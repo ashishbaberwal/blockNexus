@@ -1,10 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ethers } from 'ethers';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '../firebase/config';
-
-// Test Firebase connection on import
-console.log('🔥 Firebase DB initialized:', !!db);
+import localDocumentStorage from '../utils/localDocumentStorage';
 
 const UserContext = createContext();
 
@@ -35,6 +31,13 @@ export const UserProvider = ({ children }) => {
       setIsAuthenticated(true);
     }
   }, []);
+
+  // Check KYC status when user changes
+  useEffect(() => {
+    if (user && user.walletAddress) {
+      checkKYCStatus(user.walletAddress);
+    }
+  }, [user?.walletAddress]);
 
   // Initialize provider
   useEffect(() => {
@@ -100,18 +103,18 @@ export const UserProvider = ({ children }) => {
       };
 
       console.log('💾 Saving to localStorage...');
-      // Save to localStorage and Firebase
+      // Save to localStorage
       localStorage.setItem('blockNexusUser', JSON.stringify(userData));
       localStorage.setItem('blockNexusAccount', walletAddress);
       
-      console.log('🔥 Saving to Firebase...');
-      // Save to Firebase
+      console.log('� Saving to localStorage...');
+      // Save to localStorage
       try {
-        await saveUserToFirebase(userData);
-        console.log('✅ Firebase save successful');
-      } catch (firebaseError) {
-        console.warn('⚠️ Firebase save failed, continuing with local storage:', firebaseError);
-        // Continue without Firebase for now
+        await saveUserData(userData);
+        console.log('✅ localStorage save successful');
+      } catch (storageError) {
+        console.warn('⚠️ localStorage save failed:', storageError);
+        // Continue anyway as we already have basic storage above
       }
 
       console.log('✅ Registration completed successfully');
@@ -186,16 +189,14 @@ export const UserProvider = ({ children }) => {
     setUser(updatedUser);
   };
 
-  // Check KYC status from Firebase
+  // Check KYC status from localStorage
   const checkKYCStatus = async (walletAddress) => {
     try {
-      const kycDocRef = doc(db, 'kyc', walletAddress);
-      const kycDoc = await getDoc(kycDocRef);
+      const kycData = localDocumentStorage.getKYCData(walletAddress);
       
-      if (kycDoc.exists()) {
-        const kycData = kycDoc.data();
-        setKycStatus(kycData.verificationStatus);
-        return kycData.verificationStatus;
+      if (kycData) {
+        setKycStatus(kycData.status); // Changed from verificationStatus to status
+        return kycData.status;
       } else {
         setKycStatus('not_submitted');
         return 'not_submitted';
@@ -223,21 +224,25 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  // Save user data to Firebase
-  const saveUserToFirebase = async (userData) => {
+  // Save user data to localStorage
+  const saveUserData = async (userData) => {
     try {
-      console.log('🔥 Attempting to save to Firebase...');
-      const userDocRef = doc(db, 'users', userData.walletAddress);
-      await setDoc(userDocRef, {
+      console.log('� Saving user data to localStorage...');
+      
+      // Save to localStorage using the existing storage utility
+      localDocumentStorage.updateKYCStatus(userData.walletAddress, 'pending');
+      
+      // Also save to the main user storage
+      localStorage.setItem('blockNexusUser', JSON.stringify({
         ...userData,
         createdAt: new Date().toISOString(),
         kycStatus: 'not_submitted'
-      });
-      console.log('✅ Firebase save successful');
+      }));
+      
+      console.log('✅ User data save successful');
     } catch (error) {
-      console.error('❌ Error saving user to Firebase:', error);
+      console.error('❌ Error saving user data:', error);
       // Don't throw the error, just log it
-      // This allows registration to continue even if Firebase fails
     }
   };
 
@@ -251,7 +256,7 @@ export const UserProvider = ({ children }) => {
   };
 
   const value = {
-    user,
+    user: user ? { ...user, kycVerified: kycStatus === 'approved' } : null, // Add kycVerified computed property
     isAuthenticated,
     isLoading,
     account,
@@ -264,7 +269,7 @@ export const UserProvider = ({ children }) => {
     signAuthenticationMessage,
     checkKYCStatus,
     updateKYCStatus,
-    saveUserToFirebase
+    saveUserData
   };
 
   return (

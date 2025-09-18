@@ -1,313 +1,277 @@
-import { 
-  collection, 
-  doc, 
-  addDoc, 
-  updateDoc, 
-  getDoc, 
-  getDocs, 
-  query, 
-  where, 
-  orderBy, 
-  onSnapshot,
-  serverTimestamp 
-} from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '../firebase/config';
+// Local Storage Transaction Service
+// Replaces Firebase Firestore with localStorage for transaction management
 
-// Transaction status constants
-export const TRANSACTION_STATUS = {
-  PURCHASE_REQUESTED: 'purchase_requested',
-  LENDER_APPROVED: 'lender_approved',
-  UNDER_INSPECTION: 'under_inspection',
-  INSPECTOR_APPROVED: 'inspector_approved',
-  SELLER_APPROVED: 'seller_approved',
-  COMPLETED: 'completed',
-  CANCELLED: 'cancelled'
-};
+class LocalTransactionService {
+  constructor() {
+    this.storageKey = 'blockNexus_Transactions';
+  }
 
-// Create a new property transaction
+  // Generate unique transaction ID
+  generateTransactionId() {
+    return 'tx_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  }
+
+  // Get all transactions from localStorage
+  getAllTransactions() {
+    try {
+      const data = localStorage.getItem(this.storageKey);
+      return data ? JSON.parse(data) : [];
+    } catch (error) {
+      console.error('Error getting transactions:', error);
+      return [];
+    }
+  }
+
+  // Save transaction to localStorage
+  saveTransaction(transaction) {
+    try {
+      const transactions = this.getAllTransactions();
+      const existingIndex = transactions.findIndex(t => t.id === transaction.id);
+      
+      if (existingIndex >= 0) {
+        transactions[existingIndex] = transaction;
+      } else {
+        transactions.push(transaction);
+      }
+      
+      localStorage.setItem(this.storageKey, JSON.stringify(transactions));
+      return transaction;
+    } catch (error) {
+      console.error('Error saving transaction:', error);
+      throw error;
+    }
+  }
+
+  // Get transaction by ID
+  getTransactionById(id) {
+    try {
+      const transactions = this.getAllTransactions();
+      return transactions.find(t => t.id === id) || null;
+    } catch (error) {
+      console.error('Error getting transaction by ID:', error);
+      return null;
+    }
+  }
+
+  // Get transactions by property ID
+  getTransactionsByProperty(propertyId) {
+    try {
+      const transactions = this.getAllTransactions();
+      return transactions.filter(t => t.propertyId === propertyId);
+    } catch (error) {
+      console.error('Error getting transactions by property:', error);
+      return [];
+    }
+  }
+
+  // Get transactions by user address
+  getTransactionsByUser(userAddress) {
+    try {
+      const transactions = this.getAllTransactions();
+      return transactions.filter(t => 
+        t.buyerAddress === userAddress ||
+        t.sellerAddress === userAddress ||
+        t.lenderAddress === userAddress ||
+        t.inspectorAddress === userAddress
+      );
+    } catch (error) {
+      console.error('Error getting transactions by user:', error);
+      return [];
+    }
+  }
+
+  // Update transaction status
+  updateTransactionStatus(id, status, updatedBy) {
+    try {
+      const transaction = this.getTransactionById(id);
+      if (!transaction) {
+        throw new Error('Transaction not found');
+      }
+
+      transaction.status = status;
+      transaction.lastUpdated = new Date().toISOString();
+      transaction.updatedBy = updatedBy;
+
+      // Add status history
+      if (!transaction.statusHistory) {
+        transaction.statusHistory = [];
+      }
+      
+      transaction.statusHistory.push({
+        status,
+        timestamp: new Date().toISOString(),
+        updatedBy
+      });
+
+      return this.saveTransaction(transaction);
+    } catch (error) {
+      console.error('Error updating transaction status:', error);
+      throw error;
+    }
+  }
+}
+
+const localTransactionService = new LocalTransactionService();
+
+// Export functions that match the Firebase API for easy replacement
 export const createTransaction = async (transactionData) => {
   try {
     const transaction = {
+      id: localTransactionService.generateTransactionId(),
       ...transactionData,
-      status: TRANSACTION_STATUS.PURCHASE_REQUESTED,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-      progress: {
-        purchaseRequested: { completed: true, timestamp: serverTimestamp() },
-        lenderApproved: { completed: false, timestamp: null },
-        underInspection: { completed: false, timestamp: null },
-        inspectorApproved: { completed: false, timestamp: null },
-        sellerApproved: { completed: false, timestamp: null },
-        transactionCompleted: { completed: false, timestamp: null }
-      }
+      createdAt: new Date().toISOString(),
+      status: transactionData.status || 'purchase_requested',
+      statusHistory: [{
+        status: transactionData.status || 'purchase_requested',
+        timestamp: new Date().toISOString(),
+        updatedBy: transactionData.buyerAddress
+      }]
     };
-
-    const docRef = await addDoc(collection(db, 'transactions'), transaction);
-    return { success: true, transactionId: docRef.id };
+    
+    return localTransactionService.saveTransaction(transaction);
   } catch (error) {
     console.error('Error creating transaction:', error);
-    return { success: false, error: error.message };
+    throw error;
   }
 };
 
-// Update transaction status and progress
-export const updateTransactionStatus = async (transactionId, newStatus, updaterRole) => {
-  try {
-    const transactionRef = doc(db, 'transactions', transactionId);
-    const transactionDoc = await getDoc(transactionRef);
-    
-    if (!transactionDoc.exists()) {
-      throw new Error('Transaction not found');
-    }
-
-    const currentData = transactionDoc.data();
-    const updatedProgress = { ...currentData.progress };
-
-    // Update progress based on status
-    switch (newStatus) {
-      case TRANSACTION_STATUS.LENDER_APPROVED:
-        updatedProgress.lenderApproved = { completed: true, timestamp: serverTimestamp() };
-        break;
-      case TRANSACTION_STATUS.UNDER_INSPECTION:
-        updatedProgress.underInspection = { completed: true, timestamp: serverTimestamp() };
-        break;
-      case TRANSACTION_STATUS.INSPECTOR_APPROVED:
-        updatedProgress.inspectorApproved = { completed: true, timestamp: serverTimestamp() };
-        break;
-      case TRANSACTION_STATUS.SELLER_APPROVED:
-        updatedProgress.sellerApproved = { completed: true, timestamp: serverTimestamp() };
-        break;
-      case TRANSACTION_STATUS.COMPLETED:
-        updatedProgress.transactionCompleted = { completed: true, timestamp: serverTimestamp() };
-        break;
-    }
-
-    await updateDoc(transactionRef, {
-      status: newStatus,
-      progress: updatedProgress,
-      updatedAt: serverTimestamp(),
-      [`lastUpdatedBy`]: updaterRole
-    });
-
-    return { success: true };
-  } catch (error) {
-    console.error('Error updating transaction status:', error);
-    return { success: false, error: error.message };
-  }
-};
-
-// Get transaction by property ID
 export const getTransactionByProperty = async (propertyId) => {
   try {
-    const q = query(
-      collection(db, 'transactions'),
-      where('propertyId', '==', propertyId),
-      orderBy('createdAt', 'desc')
-    );
-    
-    const querySnapshot = await getDocs(q);
-    
-    if (querySnapshot.empty) {
-      return { success: true, transaction: null };
-    }
-
-    const latestTransaction = querySnapshot.docs[0];
-    return { 
-      success: true, 
-      transaction: { 
-        id: latestTransaction.id, 
-        ...latestTransaction.data() 
-      } 
-    };
+    const transactions = localTransactionService.getTransactionsByProperty(propertyId);
+    return transactions.length > 0 ? transactions[0] : null;
   } catch (error) {
-    console.error('Error getting transaction:', error);
-    return { success: false, error: error.message };
+    console.error('Error getting transaction by property:', error);
+    return null;
   }
 };
 
-// Get all transactions for a user (by wallet address)
-export const getUserTransactions = async (walletAddress) => {
+export const updateTransactionStatus = async (transactionId, status, updatedBy) => {
   try {
-    const q = query(
-      collection(db, 'transactions'),
-      where('participants', 'array-contains', walletAddress),
-      orderBy('createdAt', 'desc')
-    );
-    
-    const querySnapshot = await getDocs(q);
-    const transactions = [];
-    
-    querySnapshot.forEach((doc) => {
-      transactions.push({ id: doc.id, ...doc.data() });
-    });
-
-    return { success: true, transactions };
+    return localTransactionService.updateTransactionStatus(transactionId, status, updatedBy);
   } catch (error) {
-    console.error('Error getting user transactions:', error);
-    return { success: false, error: error.message };
+    console.error('Error updating transaction status:', error);
+    throw error;
   }
 };
 
-// Real-time listener for transaction updates
 export const subscribeToTransaction = (transactionId, callback) => {
-  const transactionRef = doc(db, 'transactions', transactionId);
+  // Since we're using localStorage, we'll simulate subscription with polling
+  let lastTransaction = null;
   
-  return onSnapshot(transactionRef, (doc) => {
-    if (doc.exists()) {
-      callback({ id: doc.id, ...doc.data() });
-    } else {
-      callback(null);
+  const checkForUpdates = () => {
+    const currentTransaction = localTransactionService.getTransactionById(transactionId);
+    
+    if (currentTransaction && JSON.stringify(currentTransaction) !== JSON.stringify(lastTransaction)) {
+      lastTransaction = currentTransaction;
+      callback(currentTransaction);
     }
-  }, (error) => {
-    console.error('Error listening to transaction updates:', error);
-    callback(null);
-  });
+  };
+
+  // Initial call
+  checkForUpdates();
+  
+  // Poll for changes every 2 seconds
+  const interval = setInterval(checkForUpdates, 2000);
+  
+  // Return unsubscribe function
+  return () => clearInterval(interval);
 };
 
-// Upload KYC document for transaction verification
-export const uploadTransactionKYC = async (transactionId, file, documentType, userRole) => {
+export const getTransactionsByUser = async (userAddress) => {
   try {
-    const fileName = `transactions/${transactionId}/kyc/${userRole}_${documentType}_${Date.now()}`;
-    const storageRef = ref(storage, fileName);
-    
-    const snapshot = await uploadBytes(storageRef, file);
-    const downloadURL = await getDownloadURL(snapshot.ref);
-    
-    // Update transaction with document URL
-    const transactionRef = doc(db, 'transactions', transactionId);
-    const updateData = {};
-    updateData[`kycDocuments.${userRole}.${documentType}`] = {
-      url: downloadURL,
-      uploadedAt: serverTimestamp(),
-      verified: false
-    };
-    
-    await updateDoc(transactionRef, updateData);
-    
-    return { success: true, url: downloadURL };
+    return localTransactionService.getTransactionsByUser(userAddress);
   } catch (error) {
-    console.error('Error uploading transaction KYC:', error);
-    return { success: false, error: error.message };
+    console.error('Error getting transactions by user:', error);
+    return [];
   }
 };
 
-// Generate e-stamp paper data
-export const generateEStampPaper = async (transactionId) => {
+export const getAllTransactions = async () => {
   try {
-    const transactionRef = doc(db, 'transactions', transactionId);
-    const transactionDoc = await getDoc(transactionRef);
-    
-    if (!transactionDoc.exists()) {
-      throw new Error('Transaction not found');
-    }
+    return localTransactionService.getAllTransactions();
+  } catch (error) {
+    console.error('Error getting all transactions:', error);
+    return [];
+  }
+};
 
-    const transactionData = transactionDoc.data();
+// Additional utility functions
+export const getTransactionStats = () => {
+  try {
+    const transactions = localTransactionService.getAllTransactions();
     
-    // Get buyer and seller KYC data
-    const buyerDoc = await getDoc(doc(db, 'users', transactionData.buyerAddress));
-    const sellerDoc = await getDoc(doc(db, 'users', transactionData.sellerAddress));
-    
-    const buyerData = buyerDoc.exists() ? buyerDoc.data() : {};
-    const sellerData = sellerDoc.exists() ? sellerDoc.data() : {};
-
-    const eStampData = {
-      transactionId,
-      propertyId: transactionData.propertyId,
-      salePrice: transactionData.salePrice,
-      currency: transactionData.currency || 'ETH',
-      
-      // Buyer details
-      buyer: {
-        name: buyerData.fullName || 'Buyer Name',
-        address: buyerData.address || 'Buyer Address',
-        walletAddress: transactionData.buyerAddress,
-        aadharNumber: buyerData.aadharNumber || 'XXXX-XXXX-XXXX',
-        panNumber: buyerData.panNumber || 'XXXXXXXXXX'
-      },
-      
-      // Seller details
-      seller: {
-        name: sellerData.fullName || 'Seller Name',
-        address: sellerData.address || 'Seller Address',
-        walletAddress: transactionData.sellerAddress,
-        aadharNumber: sellerData.aadharNumber || 'XXXX-XXXX-XXXX',
-        panNumber: sellerData.panNumber || 'XXXXXXXXXX'
-      },
-      
-      // Property details
-      property: transactionData.propertyDetails || {},
-      
-      // Legal details
-      stampDuty: calculateStampDuty(transactionData.salePrice),
-      registrationFee: calculateRegistrationFee(transactionData.salePrice),
-      generatedAt: serverTimestamp()
+    return {
+      total: transactions.length,
+      completed: transactions.filter(t => t.status === 'completed').length,
+      pending: transactions.filter(t => t.status !== 'completed' && t.status !== 'cancelled').length,
+      cancelled: transactions.filter(t => t.status === 'cancelled').length
     };
+  } catch (error) {
+    console.error('Error getting transaction stats:', error);
+    return { total: 0, completed: 0, pending: 0, cancelled: 0 };
+  }
+};
 
-    // Save e-stamp data to transaction
-    await updateDoc(transactionRef, {
-      eStampPaper: eStampData,
-      updatedAt: serverTimestamp()
-    });
+export const clearAllTransactions = () => {
+  try {
+    localStorage.removeItem(localTransactionService.storageKey);
+    return true;
+  } catch (error) {
+    console.error('Error clearing transactions:', error);
+    return false;
+  }
+};
 
-    return { success: true, eStampData };
+// Additional functions for compatibility with other components
+
+export const generateEStampPaper = async (transactionData) => {
+  try {
+    // Generate e-stamp paper data
+    return {
+      stampNumber: `ESTAMP-${Date.now()}`,
+      stampValue: '₹100',
+      generatedAt: new Date().toISOString(),
+      transactionId: transactionData.id,
+      buyerName: transactionData.buyerName || 'Buyer',
+      sellerName: transactionData.sellerName || 'Seller',
+      propertyDetails: transactionData.propertyDetails || 'Property',
+      amount: transactionData.amount || '0 ETH'
+    };
   } catch (error) {
     console.error('Error generating e-stamp paper:', error);
-    return { success: false, error: error.message };
+    throw error;
   }
 };
 
-// Helper functions for stamp duty calculation
-const calculateStampDuty = (salePrice) => {
-  // Basic calculation - 5% of sale price (can be customized)
-  return salePrice * 0.05;
-};
-
-const calculateRegistrationFee = (salePrice) => {
-  // Basic calculation - 1% of sale price (can be customized)
-  return salePrice * 0.01;
-};
-
-// Add notification to user
-export const addNotification = async (walletAddress, notification) => {
+export const getUserNotifications = async (userAddress) => {
   try {
-    const notificationData = {
+    // Get notifications from localStorage
+    const notifications = JSON.parse(localStorage.getItem('blockNexus_Notifications') || '[]');
+    return notifications.filter(n => n.userAddress === userAddress);
+  } catch (error) {
+    console.error('Error getting user notifications:', error);
+    return [];
+  }
+};
+
+export const addNotification = async (notification) => {
+  try {
+    const notifications = JSON.parse(localStorage.getItem('blockNexus_Notifications') || '[]');
+    const newNotification = {
+      id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       ...notification,
-      timestamp: serverTimestamp(),
+      createdAt: new Date().toISOString(),
       read: false
     };
-
-    await addDoc(collection(db, 'notifications'), {
-      userAddress: walletAddress,
-      ...notificationData
-    });
-
-    return { success: true };
+    
+    notifications.push(newNotification);
+    localStorage.setItem('blockNexus_Notifications', JSON.stringify(notifications));
+    
+    return newNotification.id;
   } catch (error) {
     console.error('Error adding notification:', error);
-    return { success: false, error: error.message };
+    throw error;
   }
 };
 
-// Get user notifications
-export const getUserNotifications = async (walletAddress) => {
-  try {
-    const q = query(
-      collection(db, 'notifications'),
-      where('userAddress', '==', walletAddress),
-      orderBy('timestamp', 'desc')
-    );
-    
-    const querySnapshot = await getDocs(q);
-    const notifications = [];
-    
-    querySnapshot.forEach((doc) => {
-      notifications.push({ id: doc.id, ...doc.data() });
-    });
-
-    return { success: true, notifications };
-  } catch (error) {
-    console.error('Error getting notifications:', error);
-    return { success: false, error: error.message };
-  }
-};
+export default localTransactionService;

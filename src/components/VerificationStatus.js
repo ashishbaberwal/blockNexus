@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useUser } from '../contexts/UserContext';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase/config';
+import localDocumentStorage from '../utils/localDocumentStorage';
 
 const VerificationStatus = ({ walletAddress }) => {
   const { kycStatus, checkKYCStatus } = useUser();
@@ -16,12 +15,11 @@ const VerificationStatus = ({ walletAddress }) => {
         // Check KYC status
         await checkKYCStatus(walletAddress);
         
-        // Get detailed KYC data
-        const kycDocRef = doc(db, 'kyc', walletAddress);
-        const kycDoc = await getDoc(kycDocRef);
+        // Get detailed KYC data from localStorage
+        const kycData = localDocumentStorage.getKYCData(walletAddress);
         
-        if (kycDoc.exists()) {
-          setKycData(kycDoc.data());
+        if (kycData) {
+          setKycData(kycData);
         }
       } catch (error) {
         console.error('Error fetching KYC data:', error);
@@ -98,7 +96,7 @@ const VerificationStatus = ({ walletAddress }) => {
           {kycStatus === 'pending' && (
             <div className="status-info pending">
               <p><strong>Submitted:</strong> {new Date(kycData.submittedAt).toLocaleDateString()}</p>
-              <p>Your documents are being reviewed. This typically takes 1-3 business days.</p>
+              <p>Your documents are being processed automatically...</p>
             </div>
           )}
 
