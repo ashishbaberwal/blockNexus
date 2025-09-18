@@ -5,6 +5,11 @@
   padding: 2rem 0;
 }
 
+/* Dark mode background */
+:root.dark-theme .about-page {
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+}
+
 .about-hero {
   text-align: center;
   padding: 3rem 1rem;
@@ -42,6 +47,12 @@
   overflow: hidden;
 }
 
+/* Dark mode sections */
+:root.dark-theme .about-section {
+  background: #1a1a2e;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
 .about-section::before {
   content: '';
   position: absolute;
@@ -68,6 +79,11 @@
   letter-spacing: 0.3px;
 }
 
+/* Dark mode headings */
+:root.dark-theme .section-header h2 {
+  color: #ffffff;
+}
+
 .section-icon {
   font-size: 2.5rem;
   background: linear-gradient(135deg, #161d3d, #2d4fbd);
@@ -86,6 +102,13 @@
   color: #555;
 }
 
+/* Dark mode info box */
+:root.dark-theme .info-box {
+  background: linear-gradient(135deg, #2a2a3e, #1a1a2e);
+  color: #e0e0e0;
+  border-left-color: #4a90e2;
+}
+
 /* Explanation Grid */
 .explanation-grid {
   display: grid;
@@ -102,6 +125,13 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   border: 1px solid #9aaeff;
+}
+
+/* Dark mode explanation cards */
+:root.dark-theme .explanation-card {
+  background: linear-gradient(135deg, #2a2a3e, #1e1e2e);
+  border-color: #4a90e2;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .explanation-card:hover {
@@ -127,6 +157,15 @@
   color: #666;
   line-height: 1.6;
   font-size: 1rem;
+}
+
+/* Dark mode card text */
+:root.dark-theme .explanation-card h3 {
+  color: #ffffff;
+}
+
+:root.dark-theme .explanation-card p {
+  color: #b0b0b0;
 }
 
 /* Process Flow */
@@ -212,6 +251,18 @@
   border-color: #667eea;
 }
 
+/* Dark mode feature boxes */
+:root.dark-theme .feature-box {
+  background: linear-gradient(135deg, #2a2a3e, #1e1e2e);
+  border-color: #4a90e2;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+:root.dark-theme .feature-box:hover {
+  border-color: #6bb6ff;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
 .feature-icon {
   font-size: 2.5rem;
   margin-bottom: 1rem;
@@ -230,6 +281,15 @@
   color: #666;
   line-height: 1.6;
   font-size: 1rem;
+}
+
+/* Dark mode feature text */
+:root.dark-theme .feature-box h3 {
+  color: #ffffff;
+}
+
+:root.dark-theme .feature-box p {
+  color: #b0b0b0;
 }
 
 /* Technology Stack */
@@ -297,6 +357,17 @@
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
 }
 
+/* Dark mode benefits */
+:root.dark-theme .benefit-item {
+  background: linear-gradient(135deg, #2a2a3e, #1e1e2e);
+  border-color: #4a90e2;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+:root.dark-theme .benefit-item:hover {
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+}
+
 .benefit-icon {
   font-size: 2.5rem;
   background: linear-gradient(135deg, #667eea, #764ba2);
@@ -318,6 +389,15 @@
   color: #666;
   line-height: 1.5;
   font-size: 1rem;
+}
+
+/* Dark mode benefit text */
+:root.dark-theme .benefit-content h3 {
+  color: #ffffff;
+}
+
+:root.dark-theme .benefit-content p {
+  color: #b0b0b0;
 }
 
 /* Responsive Design */

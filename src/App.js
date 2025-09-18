@@ -5,6 +5,7 @@ import { ethers } from 'ethers';
 import Navigation from './components/Navigation';
 import HomePage from './components/HomePage';
 import PropertiesPage from './components/PropertiesPage';
+import AboutPage from './components/AboutPage';
 import Home from './components/Home';
 
 // Context
@@ -72,6 +73,8 @@ function App() {
         return <HomePage homes={homes} togglePop={togglePop} setCurrentPage={setCurrentPage} />;
       case 'properties':
         return <PropertiesPage homes={homes} togglePop={togglePop} />;
+      case 'about':
+        return <AboutPage />;
       default:
         return <HomePage homes={homes} togglePop={togglePop} setCurrentPage={setCurrentPage} />;
     }

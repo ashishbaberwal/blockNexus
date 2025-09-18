@@ -1,8 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './TransactionProgress.css';
 
 const TransactionProgress = ({ transaction, userRole }) => {
+  const [copied, setCopied] = useState(false);
+  
   if (!transaction) return null;
+
+  const copyTransactionId = () => {
+    navigator.clipboard.writeText(transaction.id);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const steps = [
     {
@@ -128,7 +136,16 @@ const TransactionProgress = ({ transaction, userRole }) => {
         <h3>Transaction Progress</h3>
         <div className="role-status">
           <span className="user-role">{userRole?.toUpperCase()}</span>
-          <span className="transaction-id">ID: {transaction.id?.slice(0, 8)}...</span>
+          <div className="transaction-id-container">
+            <span className="transaction-id">ID: {transaction.id?.slice(0, 8)}...</span>
+            <button 
+              className="copy-id-btn" 
+              onClick={copyTransactionId}
+              title="Copy full transaction ID"
+            >
+              {copied ? '✓' : '📋'}
+            </button>
+          </div>
         </div>
       </div>
 

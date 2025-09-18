@@ -50,6 +50,12 @@
   letter-spacing: 0.5px;
 }
 
+.transaction-id-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .transaction-id {
   font-size: 0.75rem;
   color: var(--clr-grey);
@@ -58,6 +64,29 @@
 
 :root.dark-theme .transaction-id {
   color: #A0AEC0;
+}
+
+.copy-id-btn {
+  background: none;
+  border: none;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+  color: var(--clr-grey);
+}
+
+.copy-id-btn:hover {
+  background-color: var(--clr-grey-light);
+}
+
+:root.dark-theme .copy-id-btn {
+  color: #A0AEC0;
+}
+
+:root.dark-theme .copy-id-btn:hover {
+  background-color: #2D3748;
 }
 
 .progress-message {
@@ -78,7 +107,7 @@
 .progress-steps {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 20px; /* Increased gap to prevent overlapping */
 }
 
 .progress-step-container {
@@ -91,11 +120,12 @@
   display: flex;
   align-items: flex-start;
   gap: 20px;
-  padding: 15px;
+  padding: 20px 15px; /* Increased padding */
   border-radius: 10px;
   transition: all 0.3s ease;
   position: relative;
   z-index: 2;
+  min-height: 80px; /* Ensure minimum height to prevent overlap */
 }
 
 .progress-step.completed {
@@ -186,28 +216,30 @@
 .step-content {
   flex: 1;
   padding-top: 5px;
+  line-height: 1.6; /* Better line spacing */
 }
 
 .step-content h4 {
-  margin: 0 0 5px 0;
+  margin: 0 0 8px 0; /* Increased bottom margin */
   font-size: 1.1rem;
   font-weight: 600;
   color: var(--clr-black);
+  line-height: 1.3;
 }
 
 :root.dark-theme .step-content h4 {
-  color: #FFFFFF;
+  color: #FFFFFF; /* Ensure white text in dark mode */
 }
 
 .step-content p {
-  margin: 0 0 8px 0;
+  margin: 0 0 10px 0; /* Increased bottom margin */
   color: var(--clr-grey);
   font-size: 0.9rem;
-  line-height: 1.4;
+  line-height: 1.5; /* Better line spacing */
 }
 
 :root.dark-theme .step-content p {
-  color: #A0AEC0;
+  color: #CBD5E0; /* Lighter color for better readability in dark mode */
 }
 
 .step-timestamp {
@@ -223,11 +255,11 @@
 
 .progress-line {
   width: 3px;
-  height: 20px;
+  height: 25px; /* Increased height */
   background: #E2E8F0;
   margin-left: 38px;
-  margin-top: -5px;
-  margin-bottom: -5px;
+  margin-top: 5px; /* Adjusted margin */
+  margin-bottom: 5px; /* Adjusted margin */
   transition: all 0.3s ease;
   z-index: 1;
 }
@@ -238,6 +270,11 @@
 
 :root.dark-theme .progress-line {
   background: #4A5568;
+}
+
+/* Hide the line after the last step */
+.progress-step-container:last-child .progress-line {
+  display: none;
 }
 
 .progress-actions {

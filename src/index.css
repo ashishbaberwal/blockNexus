@@ -594,6 +594,7 @@ body {
   justify-content: center;
   padding: 20px 30px;
   margin-bottom: 20px;
+  gap: 15px; /* Add gap between elements instead of stretching */
 }
 
 .progress-step {
@@ -607,6 +608,7 @@ body {
   justify-content: center;
   font-weight: 600;
   transition: all 0.3s ease;
+  flex-shrink: 0; /* Prevent stretching */
 }
 
 .progress-step.active {
@@ -615,13 +617,33 @@ body {
 }
 
 .progress-line {
-  width: 80px;
+  width: 60px; /* Reduced width to prevent stretching */
   height: 2px;
   background: var(--clr-grey-light);
   transition: all 0.3s ease;
+  flex-shrink: 0; /* Prevent stretching */
 }
 
 .progress-line.active {
+  background: var(--clr-orange);
+}
+
+/* Dark mode progress indicators */
+:root.dark-theme .progress-step {
+  background: #2D3748;
+  color: #A0AEC0;
+}
+
+:root.dark-theme .progress-step.active {
+  background: var(--clr-orange);
+  color: white;
+}
+
+:root.dark-theme .progress-line {
+  background: #2D3748;
+}
+
+:root.dark-theme .progress-line.active {
   background: var(--clr-orange);
 }
 
@@ -644,6 +666,12 @@ body {
   font-weight: 600;
 }
 
+/* Dark mode form headings */
+:root.dark-theme .form-step h3,
+:root.dark-theme .form-section h4 {
+  color: #E2E8F0;
+}
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -661,6 +689,11 @@ body {
   font-weight: 500;
 }
 
+/* Dark mode form labels */
+:root.dark-theme .form-group label {
+  color: #E2E8F0;
+}
+
 .form-group input,
 .form-group select,
 .form-group textarea {
@@ -671,6 +704,16 @@ body {
   font-size: 1em;
   transition: all 0.3s ease;
   background: white;
+  color: var(--clr-dark);
+}
+
+/* Dark mode form inputs */
+:root.dark-theme .form-group input,
+:root.dark-theme .form-group select,
+:root.dark-theme .form-group textarea {
+  background: #2D3748;
+  border-color: #4A5568;
+  color: #E2E8F0;
 }
 
 .form-group input:focus,
@@ -679,6 +722,14 @@ body {
   outline: none;
   border-color: var(--clr-orange);
   box-shadow: 0 0 0 3px rgba(255, 143, 28, 0.1);
+}
+
+/* Dark mode focus states */
+:root.dark-theme .form-group input:focus,
+:root.dark-theme .form-group select:focus,
+:root.dark-theme .form-group textarea:focus {
+  border-color: var(--clr-orange);
+  box-shadow: 0 0 0 3px rgba(255, 143, 28, 0.2);
 }
 
 .wallet-info {
@@ -812,12 +863,26 @@ body {
 .btn--primary {
   background: var(--clr-orange);
   color: white;
+  border: 2px solid var(--clr-orange); /* Add border for better visibility */
 }
 
 .btn--primary:hover {
   background: var(--clr-orange-dark);
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(255, 143, 28, 0.3);
+  border-color: var(--clr-orange-dark);
+}
+
+/* Ensure primary button is visible in both themes */
+:root.dark-theme .btn--primary {
+  background: var(--clr-orange);
+  color: white;
+  border-color: var(--clr-orange);
+}
+
+:root.dark-theme .btn--primary:hover {
+  background: var(--clr-orange-dark);
+  border-color: var(--clr-orange-dark);
 }
 
 .btn--secondary {
@@ -2021,7 +2086,10 @@ header {
   display: flex;
   background: #F7FAFC;
   border-bottom: 1px solid var(--clr-grey-light);
-  padding: 0 25px; /* Increased from 20px to 25px to prevent clipping */
+  padding: 0 25px;
+  position: sticky; /* Keep tabs at top when scrolling */
+  top: 0;
+  z-index: 10; /* Ensure tabs stay above content */
 }
 
 :root.dark-theme .home__tabs {
@@ -2074,10 +2142,13 @@ header {
   flex: 1;
   padding: 20px;
   overflow-y: auto;
+  max-height: calc(100vh - 200px); /* Prevent content from pushing tabs up */
 }
 
 .tab-content {
   height: 100%;
+  overflow-y: auto; /* Allow content to scroll within tab */
+  padding: 10px 0; /* Add some padding to content */
 }
 
 .no-transaction,
