@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useUser } from '../contexts/UserContext';
 import KYCVerification from './KYCVerification';
+import FirebaseTestPanel from './FirebaseTestPanel';
 
 const Settings = ({ onClose, account }) => {
   const { darkMode, toggleTheme, theme } = useTheme();
   const { isAuthenticated, user, updateUser } = useUser();
   const [activeTab, setActiveTab] = useState('appearance');
   const [showKYC, setShowKYC] = useState(false);
+  const [showFirebaseTest, setShowFirebaseTest] = useState(false);
 
   // Only show advanced tabs if both wallet is connected AND user is authenticated
   const showAdvancedTabs = account && isAuthenticated;
@@ -31,7 +33,7 @@ const Settings = ({ onClose, account }) => {
   };
 
   // Reset to appearance tab if user logs out or disconnects wallet while in settings
-  React.useEffect(() => {
+  useEffect(() => {
     if (!showAdvancedTabs && (activeTab === 'notifications' || activeTab === 'privacy')) {
       setActiveTab('appearance');
     }
@@ -72,6 +74,12 @@ const Settings = ({ onClose, account }) => {
                   🔒 Privacy
                 </button>
               )}
+              <button 
+                className={`tab-button ${activeTab === 'developer' ? 'active' : ''}`}
+                onClick={() => setActiveTab('developer')}
+              >
+                🔧 Developer
+              </button>
             </div>
 
             {/* Settings Content */}
@@ -243,6 +251,61 @@ const Settings = ({ onClose, account }) => {
                     </div>
                     <div className="setting-control">
                       <button className="btn btn--secondary">Setup 2FA</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'developer' && (
+                <div className="settings-section">
+                  <h3>Developer Tools</h3>
+                  <p>Testing and debugging tools for developers</p>
+                  
+                  <div className="setting-item">
+                    <div className="setting-info">
+                      <h4>Firebase Connection Test</h4>
+                      <p>Test Firebase services including Firestore, Storage, and Authentication</p>
+                    </div>
+                    <div className="setting-control">
+                      <button 
+                        className="btn btn--secondary"
+                        onClick={() => setShowFirebaseTest(!showFirebaseTest)}
+                      >
+                        {showFirebaseTest ? 'Hide Firebase Test' : 'Show Firebase Test'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {showFirebaseTest && (
+                    <div className="firebase-test-container">
+                      <FirebaseTestPanel inSettings={true} />
+                    </div>
+                  )}
+
+                  <div className="setting-item">
+                    <div className="setting-info">
+                      <h4>Console Logs</h4>
+                      <p>Enable detailed console logging for debugging</p>
+                    </div>
+                    <div className="setting-control">
+                      <label className="toggle-switch">
+                        <input type="checkbox" defaultChecked />
+                        <span className="toggle-slider"></span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="setting-item">
+                    <div className="setting-info">
+                      <h4>Environment Info</h4>
+                      <p>Current environment and build information</p>
+                    </div>
+                    <div className="setting-control">
+                      <div style={{ fontSize: '12px', fontFamily: 'monospace' }}>
+                        <div>Environment: Development</div>
+                        <div>React: {React.version}</div>
+                        <div>User Agent: {navigator.userAgent.substring(0, 50)}...</div>
+                      </div>
                     </div>
                   </div>
                 </div>
