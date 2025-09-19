@@ -7,6 +7,7 @@ import HomePage from './components/HomePage';
 import PropertiesPage from './components/PropertiesPage';
 import AboutPage from './components/AboutPage';
 import Home from './components/Home';
+import PropertyList from './components/PropertyList';
 
 // Context
 import { UserProvider } from './contexts/UserContext';
@@ -73,6 +74,8 @@ function App() {
         return <HomePage homes={homes} togglePop={togglePop} setCurrentPage={setCurrentPage} />;
       case 'properties':
         return <PropertiesPage homes={homes} togglePop={togglePop} />;
+      case 'my-properties':
+        return <PropertyList />;
       case 'about':
         return <AboutPage />;
       default:

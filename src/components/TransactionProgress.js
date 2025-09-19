@@ -130,6 +130,19 @@ const TransactionProgress = ({ transaction, userRole }) => {
     }
   };
 
+  const getPromptText = () => {
+    const currentStatus = transaction.status;
+    
+    // Different prompt texts based on transaction status
+    if (currentStatus === 'completed') {
+      return "Track your journey: View your completed property transactions, pending approvals, and document uploads here.";
+    } else if (['purchase_requested', 'lender_approved', 'under_inspection'].includes(currentStatus)) {
+      return "Monitor your progress! All your property milestones, approvals, and smart contract actions are tracked in this tab.";
+    } else {
+      return "Keep up with your land project milestones, blockchain transactions, and document verification steps—real-time progress always at a glance!";
+    }
+  };
+
   return (
     <div className="transaction-progress">
       <div className="progress-header">
@@ -147,6 +160,10 @@ const TransactionProgress = ({ transaction, userRole }) => {
             </button>
           </div>
         </div>
+      </div>
+
+      <div className="progress-prompt">
+        <p>{getPromptText()}</p>
       </div>
 
       <div className="progress-message">
@@ -184,23 +201,37 @@ const TransactionProgress = ({ transaction, userRole }) => {
       </div>
 
       <div className="progress-actions">
-        {transaction.status === 'purchase_requested' && userRole === 'lender' && (
-          <button className="btn btn--primary">
-            Review & Approve Loan
+        <div className="action-buttons">
+          <button className="btn btn--secondary">
+            Go to Progress Tab
           </button>
-        )}
+          <button className="btn btn--outline">
+            See Details
+          </button>
+          <button className="btn btn--primary">
+            View My Transaction History
+          </button>
+        </div>
         
-        {transaction.status === 'under_inspection' && userRole === 'inspector' && (
-          <button className="btn btn--primary">
-            Complete Inspection
-          </button>
-        )}
-        
-        {transaction.status === 'inspector_approved' && userRole === 'seller' && (
-          <button className="btn btn--primary">
-            Sign Documents
-          </button>
-        )}
+        <div className="role-specific-actions">
+          {transaction.status === 'purchase_requested' && userRole === 'lender' && (
+            <button className="btn btn--primary">
+              Review & Approve Loan
+            </button>
+          )}
+          
+          {transaction.status === 'under_inspection' && userRole === 'inspector' && (
+            <button className="btn btn--primary">
+              Complete Inspection
+            </button>
+          )}
+          
+          {transaction.status === 'inspector_approved' && userRole === 'seller' && (
+            <button className="btn btn--primary">
+              Sign Documents
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

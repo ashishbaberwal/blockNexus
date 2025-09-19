@@ -1,0 +1,435 @@
+/* Property Card Styles */
+.property-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    position: relative;
+}
+
+.property-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* Grid View */
+.property-card.grid-view {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.property-card.grid-view .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 20px 20px 0 20px;
+}
+
+.property-card.grid-view .card-content {
+    padding: 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.property-card.grid-view .card-actions {
+    padding: 0 20px 20px 20px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.property-card.grid-view .card-footer {
+    padding: 15px 20px;
+    background: #f8f9fa;
+    border-top: 1px solid #e2e8f0;
+    margin-top: auto;
+}
+
+/* List View */
+.property-card.list-view {
+    display: flex;
+    flex-direction: column;
+}
+
+.property-card.list-view .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.property-card.list-view .card-content {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.property-card.list-view .card-actions {
+    padding: 0 20px 20px 20px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Card Header */
+.property-type-badge {
+    background: linear-gradient(
+        135deg,
+        var(--clr-orange),
+        var(--clr-orange-dark)
+    );
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.card-menu {
+    position: relative;
+}
+
+.menu-btn {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: var(--clr-grey);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.menu-btn:hover {
+    background: #f8f9fa;
+    color: var(--clr-orange);
+}
+
+/* Card Content */
+.property-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--clr-black);
+    margin: 0 0 8px 0;
+    line-height: 1.2;
+}
+
+.property-location {
+    color: var(--clr-grey);
+    font-size: 1rem;
+    margin: 0 0 15px 0;
+    line-height: 1.4;
+}
+
+.property-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--clr-grey);
+    font-size: 0.9rem;
+}
+
+.meta-item .icon {
+    font-size: 1rem;
+}
+
+/* Document Status */
+.document-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: auto;
+    margin-bottom: 15px;
+}
+
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.status-text {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--clr-grey);
+}
+
+/* Property Details (List View) */
+.property-details {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 120px;
+}
+
+.detail-item .label {
+    font-size: 0.8rem;
+    color: var(--clr-grey);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.detail-item .value {
+    font-size: 0.95rem;
+    color: var(--clr-black);
+    font-weight: 500;
+}
+
+.detail-item .value.status {
+    font-weight: 600;
+}
+
+/* Card Details (Expandable) */
+.card-details {
+    padding: 20px;
+    background: #f8f9fa;
+    border-top: 1px solid #e2e8f0;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        max-height: 0;
+    }
+    to {
+        opacity: 1;
+        max-height: 1000px;
+    }
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    margin-bottom: 20px;
+}
+
+.detail-section {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.detail-section h4 {
+    color: var(--clr-orange);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 15px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.detail-section .detail-item {
+    margin-bottom: 12px;
+}
+
+.detail-section .detail-item:last-child {
+    margin-bottom: 0;
+}
+
+.notes-section {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.notes-section h4 {
+    color: var(--clr-orange);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 12px 0;
+}
+
+.notes-section p {
+    color: var(--clr-grey);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Card Actions */
+.card-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 80px;
+}
+
+.btn--outline {
+    background: transparent;
+    color: var(--clr-orange);
+    border: 2px solid var(--clr-orange);
+}
+
+.btn--outline:hover {
+    background: var(--clr-orange);
+    color: white;
+}
+
+.btn--secondary {
+    background: linear-gradient(135deg, #48bb78, #38a169);
+    color: white;
+}
+
+.btn--secondary:hover {
+    background: linear-gradient(135deg, #38a169, #2f855a);
+    transform: translateY(-1px);
+}
+
+.btn--danger {
+    background: linear-gradient(135deg, #e53e3e, #c53030);
+    color: white;
+}
+
+.btn--danger:hover {
+    background: linear-gradient(135deg, #c53030, #9c2626);
+    transform: translateY(-1px);
+}
+
+/* Card Footer */
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.created-date {
+    font-size: 0.8rem;
+    color: var(--clr-grey);
+    font-weight: 500;
+}
+
+/* Dark Theme */
+:root.dark-theme .property-card {
+    background: #2d3748;
+    border-color: #4a5568;
+}
+
+:root.dark-theme .property-card:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+
+:root.dark-theme .card-details {
+    background: #1a202c;
+    border-color: #4a5568;
+}
+
+:root.dark-theme .detail-section,
+:root.dark-theme .notes-section {
+    background: #2d3748;
+}
+
+:root.dark-theme .property-title {
+    color: #ffffff;
+}
+
+:root.dark-theme .detail-item .value {
+    color: #e2e8f0;
+}
+
+:root.dark-theme .card-footer {
+    background: #1a202c;
+    border-color: #4a5568;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .property-card.list-view .card-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .property-details {
+        gap: 20px;
+    }
+
+    .detail-item {
+        min-width: 100px;
+    }
+
+    .details-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .card-actions {
+        justify-content: stretch;
+    }
+
+    .btn {
+        flex: 1;
+        min-width: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .property-card.grid-view .card-header,
+    .property-card.grid-view .card-content,
+    .property-card.grid-view .card-actions,
+    .property-card.list-view .card-header,
+    .property-card.list-view .card-content,
+    .property-card.list-view .card-actions {
+        padding: 15px;
+    }
+
+    .property-title {
+        font-size: 1.2rem;
+    }
+
+    .property-location {
+        font-size: 0.9rem;
+    }
+
+    .detail-section,
+    .notes-section {
+        padding: 15px;
+    }
+
+    .card-actions {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+    }
+}
