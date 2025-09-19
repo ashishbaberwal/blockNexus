@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import logo from '../assets/logo.svg';
 import { useUser } from '../contexts/UserContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -13,6 +13,21 @@ const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
   const [showProfile, setShowProfile] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [authError, setAuthError] = useState('');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (mobileMenuOpen && !event.target.closest('nav')) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [mobileMenuOpen]);
 
   const connectHandler = async () => {
     try {
@@ -40,6 +55,7 @@ const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
 
   const handleNavigation = (page) => {
     setCurrentPage(page);
+    setMobileMenuOpen(false); // Close mobile menu when navigating
   }
 
   const handleProfileClick = () => {
@@ -56,7 +72,15 @@ const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
   return (
     <>
       <nav>
-          <ul className='nav__links'>
+          <button 
+            className="mobile-menu-toggle"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle mobile menu"
+          >
+            ☰
+          </button>
+
+          <ul className={`nav__links ${mobileMenuOpen ? 'mobile-open' : ''}`}>
               <li>
                 <button 
                   type="button" 
@@ -73,6 +97,15 @@ const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
                   onClick={() => handleNavigation('properties')}
                 >
                   Buy
+                </button>
+              </li>
+              <li>
+                <button 
+                  type="button" 
+                  className={`nav__link ${currentPage === 'my-properties' ? 'nav__link--active' : ''}`}
+                  onClick={() => handleNavigation('my-properties')}
+                >
+                  My Properties
                 </button>
               </li>
               <li><button type="button" className="nav__link">Rent</button></li>
@@ -130,6 +163,17 @@ const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
             {/* Notification and Settings */}
             <div className="nav__actions">
               {account && isAuthenticated && <NotificationSystem />}
+              
+              {account && isAuthenticated && (
+                <button
+                  type="button"
+                  className="nav__quick-action"
+                  onClick={() => handleNavigation('my-properties')}
+                  title="My Properties"
+                >
+                  🏠
+                </button>
+              )}
               
               <button
                 type="button"

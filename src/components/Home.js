@@ -17,6 +17,7 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
     const [lender, setLender] = useState(null)
     const [inspector, setInspector] = useState(null)
     const [seller, setSeller] = useState(null)
+    const [buyRequestSent, setBuyRequestSent] = useState(false)
 
     const [owner, setOwner] = useState(null)
     const [ownerName, setOwnerName] = useState(null)
@@ -55,7 +56,37 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
 
       const hasInspected = await escrow.inspectionPassed(home.id)
       setHasInspected(hasInspected)
-    }, [escrow, home.id])
+
+      // Determine user role
+      if (account) {
+        console.log('Role detection debug:');
+        console.log('account:', account);
+        console.log('buyer:', buyer);
+        console.log('seller:', seller);
+        console.log('lender:', lender);
+        console.log('inspector:', inspector);
+        console.log('account === seller:', account === seller);
+        console.log('account === lender:', account === lender);
+        console.log('account === inspector:', account === inspector);
+        
+        if (account === seller) {
+          setUserRole('seller');
+          console.log('Set role to seller');
+        } else if (account === lender) {
+          setUserRole('lender');
+          console.log('Set role to lender');
+        } else if (account === inspector) {
+          setUserRole('inspector');
+          console.log('Set role to inspector');
+        } else {
+          setUserRole('buyer');
+          console.log('Set role to buyer (default for any connected account)');
+        }
+      } else {
+        setUserRole(null);
+        console.log('No account, role set to null');
+      }
+    }, [escrow, home.id, account])
 
     const fetchOwner = useCallback(async () => {
       if (await escrow.isListed(home.id)) return 
@@ -108,15 +139,25 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
     }, [home.id, account])
 
     const buyHandler = async () => {
-      if (!isAuthenticated || !user?.kycVerified) {
+      console.log('Buy button clicked!');
+      console.log('isAuthenticated:', isAuthenticated);
+      console.log('user:', user);
+      console.log('user?.kycVerified:', user?.kycVerified);
+      
+      if (!isAuthenticated) {
+        alert('Please connect your wallet first.');
+        return;
+      }
+      
+      if (!user?.kycVerified) {
         alert('Please complete KYC verification before making a purchase.');
         return;
       }
 
-      const escrowAmount = await escrow.escrowAmount(home.id)
-      const signer = await provider.getSigner()
-
       try {
+        const escrowAmount = await escrow.escrowAmount(home.id)
+        const signer = await provider.getSigner()
+
         // Create transaction in localStorage first
         const transactionData = {
           propertyId: home.id.toString(),
@@ -141,15 +182,16 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
 
         const createResult = await createTransaction(transactionData);
 
-        // Buyer deposit earnest
+        // Buyer deposit earnest - This will call MetaMask
         let transaction = await escrow.connect(signer).depositEarnest(home.id, { value: escrowAmount })
         await transaction.wait()
 
-        // Buyer approves...
+        // Buyer approves - This will call MetaMask again
         transaction = await escrow.connect(signer).approveSale(home.id)
         await transaction.wait()
 
         setHasBought(true)
+        setBuyRequestSent(true)
 
         // Send notifications to all parties
         await sendTransactionNotification(lender, 'lender_approval_required', {
@@ -275,6 +317,8 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
       loadTransaction()
     }, [fetchDetails, fetchOwner, loadTransaction, hasSold])
 
+
+
     // Real-time transaction updates
     useEffect(() => {
       let unsubscribe;
@@ -310,27 +354,38 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
                 </div>
               ) : (
                 <div>
-                  {(account && account === inspector) ? (
+                  {!account ? (
+                    <button className="home__buy" disabled>
+                      Connect Wallet to Buy
+                    </button>
+                  ) : account === inspector ? (
                     <button className="home__buy" onClick={inspectHandler} disabled={hasInspected}>
                       Approve Inspection
                     </button>
-                  
-                  ) : (account && account === lender) ? (
+                  ) : account === lender ? (
                     <button className="home__buy" onClick={lendHandler} disabled={hasLended}>
                       Approve & Lend
                     </button>
-                    
-                  ) : (account && account === seller) ? (
+                  ) : account === seller ? (
                     <button className="home__buy" onClick={sellHandler} disabled={hasSold}>
                       Approve & Sell
                     </button>
-                  ) : account ? (
-                    <button className="home__buy" onClick={buyHandler} disabled={hasBought}>
-                      Buy
-                    </button>
                   ) : (
-                    <button className="home__buy" disabled>
-                      Connect Wallet to Buy
+                    <button 
+                      className="home__buy" 
+                      onClick={buyRequestSent ? null : buyHandler} 
+                      disabled={buyRequestSent}
+                      style={{
+                        backgroundColor: buyRequestSent ? '#28a745' : '#ff6b35', 
+                        color: 'white', 
+                        padding: '15px', 
+                        fontSize: '16px', 
+                        border: 'none', 
+                        borderRadius: '8px', 
+                        cursor: buyRequestSent ? 'not-allowed' : 'pointer'
+                      }}
+                    >
+                      {buyRequestSent ? 'Request Sent' : 'Buy Property'}
                     </button>
                   )}
 

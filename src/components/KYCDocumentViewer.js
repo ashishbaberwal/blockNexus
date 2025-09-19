@@ -145,7 +145,7 @@ const KYCDocumentViewer = ({ transaction, currentUserRole, currentUserAddress })
                 {userData.aadharNumber ? `****-****-${userData.aadharNumber.slice(-4)}` : 'Not provided'}
               </span>
             </div>
-            {renderDocumentImage(userData.aadharImageUrl, 'Aadhar Card')}
+            {renderDocumentImage(userData.aadharDocument?.base64Data, 'Aadhar Card')}
           </div>
 
           <div className="document-card">
@@ -155,7 +155,7 @@ const KYCDocumentViewer = ({ transaction, currentUserRole, currentUserAddress })
                 {userData.panNumber ? `******${userData.panNumber.slice(-4)}` : 'Not provided'}
               </span>
             </div>
-            {renderDocumentImage(userData.panImageUrl, 'PAN Card')}
+            {renderDocumentImage(userData.panDocument?.base64Data, 'PAN Card')}
           </div>
 
           {userRole === 'seller' && (
@@ -165,7 +165,7 @@ const KYCDocumentViewer = ({ transaction, currentUserRole, currentUserAddress })
                   <h5>Property Papers</h5>
                   <span className="document-number">Legal Documents</span>
                 </div>
-                {renderDocumentImage(userData.propertyPapersUrl, 'Property Papers')}
+                {renderDocumentImage(userData.propertyPapersDocument?.base64Data, 'Property Papers')}
               </div>
 
               <div className="document-card">
@@ -173,7 +173,7 @@ const KYCDocumentViewer = ({ transaction, currentUserRole, currentUserAddress })
                   <h5>Agreement</h5>
                   <span className="document-number">Sale Agreement</span>
                 </div>
-                {renderDocumentImage(userData.agreementUrl, 'Sale Agreement')}
+                {renderDocumentImage(userData.agreementDocument?.base64Data, 'Sale Agreement')}
               </div>
             </>
           )}
@@ -195,7 +195,7 @@ const KYCDocumentViewer = ({ transaction, currentUserRole, currentUserAddress })
           <div className="info-row">
             <span className="info-label">KYC Completed:</span>
             <span className="info-value">
-              {userData.kycCompletedAt ? new Date(userData.kycCompletedAt.toDate()).toLocaleDateString() : 'Not completed'}
+              {userData.kycCompletedAt ? new Date(userData.kycCompletedAt).toLocaleDateString() : 'Not completed'}
             </span>
           </div>
         </div>
