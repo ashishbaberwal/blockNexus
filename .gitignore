@@ -48,3 +48,4 @@ ignition/deployments
 
 .history
 *.log
+debug.log
