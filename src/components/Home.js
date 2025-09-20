@@ -68,14 +68,15 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
         console.log('account === seller:', account === seller);
         console.log('account === lender:', account === lender);
         console.log('account === inspector:', account === inspector);
+        console.log('account.toLowerCase() === seller.toLowerCase():', account.toLowerCase() === seller.toLowerCase());
         
-        if (account === seller) {
+        if (account.toLowerCase() === seller.toLowerCase()) {
           setUserRole('seller');
           console.log('Set role to seller');
-        } else if (account === lender) {
+        } else if (account.toLowerCase() === lender.toLowerCase()) {
           setUserRole('lender');
           console.log('Set role to lender');
-        } else if (account === inspector) {
+        } else if (account.toLowerCase() === inspector.toLowerCase()) {
           setUserRole('inspector');
           console.log('Set role to inspector');
         } else {
@@ -138,6 +139,7 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
       }
     }, [home.id, account])
 
+
     const buyHandler = async () => {
       console.log('Buy button clicked!');
       console.log('isAuthenticated:', isAuthenticated);
@@ -145,12 +147,47 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
       console.log('user?.kycVerified:', user?.kycVerified);
       
       if (!isAuthenticated) {
-        alert('Please connect your wallet first.');
+        window.alert('Please connect your wallet first.');
         return;
       }
       
-      if (!user?.kycVerified) {
-        alert('Please complete KYC verification before making a purchase.');
+      // Check KYC status - must be properly verified
+      let isKYCVerified = false;
+      
+      console.log('KYC Verification Check:');
+      console.log('- user?.kycVerified:', user?.kycVerified);
+      console.log('- user?.kycStatus:', user?.kycStatus);
+      console.log('- account:', account);
+      
+      // Check user context KYC status first
+      if (user?.kycVerified) {
+        isKYCVerified = true;
+        console.log('✅ KYC verified through user context');
+      } else {
+        // Check localStorage for KYC data
+        const kycData = localStorage.getItem('blockNexusKYC_' + account);
+        console.log('- KYC data from localStorage:', kycData ? 'Found' : 'Not found');
+        
+        if (kycData) {
+          try {
+            const parsedKYC = JSON.parse(kycData);
+            console.log('- Parsed KYC data:', parsedKYC);
+            console.log('- verificationStatus:', parsedKYC.verificationStatus);
+            console.log('- status:', parsedKYC.status);
+            
+            isKYCVerified = parsedKYC.verificationStatus === 'approved' || parsedKYC.status === 'approved';
+            console.log('- isKYCVerified from localStorage:', isKYCVerified);
+          } catch (error) {
+            console.error('Error parsing KYC data:', error);
+            isKYCVerified = false;
+          }
+        }
+      }
+      
+      console.log('Final KYC verification result:', isKYCVerified);
+      
+      if (!isKYCVerified) {
+        window.alert('Please complete KYC verification before making a purchase. You can complete KYC from your profile or settings.');
         return;
       }
 
@@ -204,91 +241,250 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
         loadTransaction();
       } catch (error) {
         console.error('Error in buy handler:', error);
-        alert('Transaction failed. Please try again.');
+        window.alert('Transaction failed. Please try again.');
       }
     }
 
     const inspectHandler = async () => {
-      const signer = await provider.getSigner()
+      console.log('Inspect button clicked!');
+      console.log('isAuthenticated:', isAuthenticated);
+      console.log('account:', account);
+      console.log('inspector:', inspector);
+      
+      if (!isAuthenticated) {
+        window.alert('Please connect your wallet first.');
+        return;
+      }
+      
+      // Check if current account is the inspector
+      if (account.toLowerCase() !== inspector.toLowerCase()) {
+        window.alert('Only the inspector can approve inspections.');
+        return;
+      }
 
       try {
+        const signer = await provider.getSigner()
+        
+        console.log('Starting inspection approval...');
+        console.log('Home ID:', home.id);
+        console.log('Account:', account);
+        console.log('Inspector address from contract:', inspector);
+        
         // Inspector updates status
+        console.log('Calling updateInspectionStatus...');
         const blockchainTx = await escrow.connect(signer).updateInspectionStatus(home.id, true)
         await blockchainTx.wait()
+        console.log('updateInspectionStatus completed');
 
         setHasInspected(true)
 
         // Update transaction status in localStorage
         if (transaction) {
-          await updateTransactionStatus(transaction.id, 'inspector_approved', 'inspector');
-          
-          // Send notifications
-          await sendTransactionNotification(transaction.buyerAddress, 'inspector_approved', {
-            propertyName: home.name,
-            transactionId: transaction.id
-          });
-          
-          await sendTransactionNotification(transaction.sellerAddress, 'seller_approval_required', {
-            propertyName: home.name,
-            transactionId: transaction.id
-          });
+          try {
+            await updateTransactionStatus(transaction.id, 'inspector_approved', 'inspector');
+            
+            // Send notifications
+            await sendTransactionNotification(transaction.buyerAddress, 'inspector_approved', {
+              propertyName: home.name,
+              transactionId: transaction.id
+            });
+            
+            await sendTransactionNotification(transaction.sellerAddress, 'seller_approval_required', {
+              propertyName: home.name,
+              transactionId: transaction.id
+            });
+          } catch (notificationError) {
+            console.warn('Error updating transaction status or sending notifications:', notificationError);
+            // Don't fail the whole process for notification errors
+          }
         }
+        
+        window.alert('Inspection approved successfully!');
       } catch (error) {
         console.error('Error in inspect handler:', error);
+        window.alert('Inspection approval failed: ' + (error.message || 'Unknown error'));
       }
     }
 
     const lendHandler = async () => {
-      const signer = await provider.getSigner()
+      console.log('Lend button clicked!');
+      console.log('isAuthenticated:', isAuthenticated);
+      console.log('account:', account);
+      console.log('lender:', lender);
+      
+      if (!isAuthenticated) {
+        window.alert('Please connect your wallet first.');
+        return;
+      }
+      
+      // Check if current account is the lender
+      if (account.toLowerCase() !== lender.toLowerCase()) {
+        window.alert('Only the lender can approve and provide funding.');
+        return;
+      }
 
       try {
+        const signer = await provider.getSigner()
+        
+        console.log('Starting lending process...');
+        console.log('Home ID:', home.id);
+        console.log('Account:', account);
+        console.log('Lender address from contract:', lender);
+        
+        // Get amounts
+        const purchasePrice = await escrow.purchasePrice(home.id);
+        const escrowAmount = await escrow.escrowAmount(home.id);
+        const lendAmount = purchasePrice - escrowAmount;
+        
+        console.log('Purchase price:', purchasePrice.toString());
+        console.log('Escrow amount:', escrowAmount.toString());
+        console.log('Lend amount:', lendAmount.toString());
+        
+        if (lendAmount <= 0) {
+          window.alert('No additional funds needed from lender.');
+          return;
+        }
+        
         // Lender approves...
+        console.log('Calling approveSale...');
         const blockchainTx = await escrow.connect(signer).approveSale(home.id)
         await blockchainTx.wait()
+        console.log('approveSale completed');
 
         // Lender sends funds to contract...
-        const lendAmount = (await escrow.purchasePrice(home.id) - await escrow.escrowAmount(home.id))
-        await signer.sendTransaction({ to: await escrow.getAddress(), value: lendAmount.toString(), gasLimit: 60000 })
+        console.log('Sending funds to contract...');
+        const fundTx = await signer.sendTransaction({ 
+          to: await escrow.getAddress(), 
+          value: lendAmount.toString(), 
+          gasLimit: 100000 
+        });
+        await fundTx.wait();
+        console.log('Funds sent successfully');
 
         setHasLended(true)
 
         // Update transaction status in localStorage
         if (transaction) {
-          await updateTransactionStatus(transaction.id, 'lender_approved', 'lender');
-          await updateTransactionStatus(transaction.id, 'under_inspection', 'system');
-          
-          // Send notifications
-          await sendTransactionNotification(transaction.buyerAddress, 'lender_approved', {
-            propertyName: home.name,
-            transactionId: transaction.id
-          });
-          
-          await sendTransactionNotification(transaction.inspectorAddress, 'inspection_required', {
-            propertyName: home.name,
-            transactionId: transaction.id
-          });
+          try {
+            await updateTransactionStatus(transaction.id, 'lender_approved', 'lender');
+            await updateTransactionStatus(transaction.id, 'under_inspection', 'system');
+            
+            // Send notifications
+            await sendTransactionNotification(transaction.buyerAddress, 'lender_approved', {
+              propertyName: home.name,
+              transactionId: transaction.id
+            });
+            
+            await sendTransactionNotification(transaction.inspectorAddress, 'inspection_required', {
+              propertyName: home.name,
+              transactionId: transaction.id
+            });
+          } catch (notificationError) {
+            console.warn('Error updating transaction status or sending notifications:', notificationError);
+            // Don't fail the whole process for notification errors
+          }
         }
+        
+        window.alert('Lending approved and funds sent successfully!');
       } catch (error) {
         console.error('Error in lend handler:', error);
+        window.alert('Lending failed: ' + (error.message || 'Unknown error'));
       }
     }
 
     const sellHandler = async () => {
-      if (!isAuthenticated || !user?.kycVerified) {
-        alert('Please complete KYC verification before finalizing a sale.');
+      console.log('Sell button clicked!');
+      console.log('isAuthenticated:', isAuthenticated);
+      console.log('user:', user);
+      console.log('user?.kycVerified:', user?.kycVerified);
+      
+      if (!isAuthenticated) {
+        window.alert('Please connect your wallet first.');
+        return;
+      }
+      
+      // Check KYC status - must be properly verified
+      let isKYCVerified = false;
+      
+      console.log('KYC Verification Check for Seller:');
+      console.log('- user?.kycVerified:', user?.kycVerified);
+      console.log('- user?.kycStatus:', user?.kycStatus);
+      console.log('- account:', account);
+      
+      // Check user context KYC status first
+      if (user?.kycVerified) {
+        isKYCVerified = true;
+        console.log('✅ KYC verified through user context');
+      } else {
+        // Check localStorage for KYC data
+        const kycData = localStorage.getItem('blockNexusKYC_' + account);
+        console.log('- KYC data from localStorage:', kycData ? 'Found' : 'Not found');
+        
+        if (kycData) {
+          try {
+            const parsedKYC = JSON.parse(kycData);
+            console.log('- Parsed KYC data:', parsedKYC);
+            console.log('- verificationStatus:', parsedKYC.verificationStatus);
+            console.log('- status:', parsedKYC.status);
+            
+            isKYCVerified = parsedKYC.verificationStatus === 'approved' || parsedKYC.status === 'approved';
+            console.log('- isKYCVerified from localStorage:', isKYCVerified);
+          } catch (error) {
+            console.error('Error parsing KYC data:', error);
+            isKYCVerified = false;
+          }
+        }
+      }
+      
+      console.log('Final KYC verification result for seller:', isKYCVerified);
+      
+      if (!isKYCVerified) {
+        window.alert('Please complete KYC verification before finalizing a sale. You can complete KYC from your profile or settings.');
         return;
       }
 
       const signer = await provider.getSigner()
 
       try {
+        console.log('Starting sell process...');
+        console.log('Home ID:', home.id);
+        console.log('Account:', account);
+        console.log('Seller address from contract:', seller);
+        
+        // Check if current account is the seller
+        if (account.toLowerCase() !== seller.toLowerCase()) {
+          window.alert('Only the seller can approve and finalize the sale.');
+          return;
+        }
+
         // Seller approves...
+        console.log('Calling approveSale...');
         let blockchainTx = await escrow.connect(signer).approveSale(home.id)
         await blockchainTx.wait()
+        console.log('approveSale completed');
+
+        // Check if all approvals are in place before finalizing
+        const buyerApproval = await escrow.approval(home.id, await escrow.buyer(home.id));
+        const sellerApproval = await escrow.approval(home.id, seller);
+        const lenderApproval = await escrow.approval(home.id, lender);
+        const inspectionPassed = await escrow.inspectionPassed(home.id);
+        
+        console.log('Approval status:');
+        console.log('- Buyer approval:', buyerApproval);
+        console.log('- Seller approval:', sellerApproval);
+        console.log('- Lender approval:', lenderApproval);
+        console.log('- Inspection passed:', inspectionPassed);
+        
+        if (!buyerApproval || !lenderApproval || !inspectionPassed) {
+          window.alert('Cannot finalize sale yet. All parties must approve and inspection must be passed.');
+          return;
+        }
 
         // Seller finalize...
+        console.log('Calling finalizeSale...');
         blockchainTx = await escrow.connect(signer).finalizeSale(home.id)
         await blockchainTx.wait()
+        console.log('finalizeSale completed');
     
         setHasSold(true)
 
@@ -306,8 +502,11 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
             });
           }
         }
+        
+        window.alert('Sale completed successfully!');
       } catch (error) {
         console.error('Error in sell handler:', error);
+        window.alert('Transaction failed: ' + error.message);
       }
     }
 
@@ -371,22 +570,91 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
                       Approve & Sell
                     </button>
                   ) : (
-                    <button 
-                      className="home__buy" 
-                      onClick={buyRequestSent ? null : buyHandler} 
-                      disabled={buyRequestSent}
-                      style={{
-                        backgroundColor: buyRequestSent ? '#28a745' : '#ff6b35', 
-                        color: 'white', 
-                        padding: '15px', 
-                        fontSize: '16px', 
-                        border: 'none', 
-                        borderRadius: '8px', 
-                        cursor: buyRequestSent ? 'not-allowed' : 'pointer'
-                      }}
-                    >
-                      {buyRequestSent ? 'Request Sent' : 'Buy Property'}
-                    </button>
+                    <div>
+                      <button 
+                        className="home__buy" 
+                        onClick={buyRequestSent ? null : buyHandler} 
+                        disabled={buyRequestSent}
+                        style={{
+                          backgroundColor: buyRequestSent ? '#28a745' : '#ff6b35', 
+                          color: 'white', 
+                          padding: '15px', 
+                          fontSize: '16px', 
+                          border: 'none', 
+                          borderRadius: '8px', 
+                          cursor: buyRequestSent ? 'not-allowed' : 'pointer',
+                          marginBottom: '10px',
+                          display: 'block',
+                          width: '100%'
+                        }}
+                      >
+                        {buyRequestSent ? 'Request Sent' : 'Buy Property'}
+                      </button>
+                      
+                      {/* Debug button to check KYC status */}
+                      <button 
+                        onClick={() => {
+                          console.log('=== KYC DEBUG INFO ===');
+                          console.log('User:', user);
+                          console.log('Account:', account);
+                          console.log('KYC from localStorage:', localStorage.getItem('blockNexusKYC_' + account));
+                          console.log('User from localStorage:', localStorage.getItem('blockNexusUser'));
+                          window.alert('Check console for KYC debug info');
+                        }}
+                        style={{
+                          backgroundColor: '#6c757d',
+                          color: 'white',
+                          padding: '8px 12px',
+                          fontSize: '12px',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          width: '100%',
+                          marginBottom: '5px'
+                        }}
+                      >
+                        Debug KYC Status
+                      </button>
+                      
+                      {/* Test button to manually complete KYC */}
+                      <button 
+                        onClick={() => {
+                          const testKYCData = {
+                            aadharNumber: '123456789012',
+                            panNumber: 'ABCDE1234F',
+                            fullName: 'Test User',
+                            dateOfBirth: '1990-01-01',
+                            address: 'Test Address',
+                            verificationStatus: 'approved',
+                            status: 'approved',
+                            submittedAt: new Date().toISOString(),
+                            approvedAt: new Date().toISOString()
+                          };
+                          
+                          localStorage.setItem('blockNexusKYC_' + account, JSON.stringify(testKYCData));
+                          
+                          // Update user context
+                          if (window.updateKYCStatus) {
+                            window.updateKYCStatus('approved');
+                          }
+                          
+                          window.alert('Test KYC data saved! Try the buy button now.');
+                          window.location.reload();
+                        }}
+                        style={{
+                          backgroundColor: '#28a745',
+                          color: 'white',
+                          padding: '8px 12px',
+                          fontSize: '12px',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          width: '100%'
+                        }}
+                      >
+                        Complete Test KYC
+                      </button>
+                    </div>
                   )}
 
                   <button className="home__contact">

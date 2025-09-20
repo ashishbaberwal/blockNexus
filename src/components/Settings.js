@@ -18,15 +18,48 @@ const Settings = ({ onClose, account }) => {
 
   const handleKYCSubmit = async (kycData) => {
     try {
-      // Update user with KYC data
-      await updateUser(account, {
+      console.log('KYC submitted with data:', kycData);
+      
+      // Create comprehensive KYC data
+      const fullKYCData = {
         ...kycData,
+        verificationStatus: 'approved',
+        status: 'approved',
+        submittedAt: new Date().toISOString(),
+        approvedAt: new Date().toISOString(),
+        walletAddress: account
+      };
+      
+      // Save KYC data to localStorage with correct key
+      localStorage.setItem('blockNexusKYC_' + account, JSON.stringify(fullKYCData));
+      console.log('KYC data saved to localStorage with key: blockNexusKYC_' + account);
+      
+      // Update user with KYC data
+      const updatedUser = {
+        ...user,
         kycVerified: true,
-        kycCompletedAt: new Date()
-      });
+        kycStatus: 'approved',
+        kycCompletedAt: new Date().toISOString(),
+        lastUpdated: new Date().toISOString()
+      };
+      
+      // Save updated user to localStorage
+      localStorage.setItem('blockNexusUser', JSON.stringify(updatedUser));
+      console.log('User data updated with KYC verification');
+      
+      // Also update KYC status in the context
+      if (window.updateKYCStatus) {
+        window.updateKYCStatus('approved');
+      }
+      
       setShowKYC(false);
+      window.alert('KYC verification completed successfully! You can now make purchases.');
+      
+      // Refresh the page to update the user context
+      window.location.reload();
     } catch (error) {
       console.error('Error updating KYC data:', error);
+      window.alert('Error updating KYC status. Please try again.');
     }
   };
 
