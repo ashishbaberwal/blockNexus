@@ -192,12 +192,29 @@ export const UserProvider = ({ children }) => {
   // Check KYC status from localStorage
   const checkKYCStatus = async (walletAddress) => {
     try {
-      const kycData = localDocumentStorage.getKYCData(walletAddress);
+      console.log('Checking KYC status for wallet:', walletAddress);
+      
+      // Check direct localStorage first (primary method)
+      const directKYCData = localStorage.getItem('blockNexusKYC_' + walletAddress);
+      let kycData = null;
+      
+      if (directKYCData) {
+        kycData = JSON.parse(directKYCData);
+        console.log('Found KYC data in direct localStorage:', kycData);
+      } else {
+        // Fallback to localDocumentStorage
+        kycData = localDocumentStorage.getKYCData(walletAddress);
+        console.log('Found KYC data in localDocumentStorage:', kycData);
+      }
       
       if (kycData) {
-        setKycStatus(kycData.status); // Changed from verificationStatus to status
-        return kycData.status;
+        // Check both possible status field names
+        const status = kycData.verificationStatus || kycData.status || 'not_submitted';
+        console.log('KYC status determined as:', status);
+        setKycStatus(status);
+        return status;
       } else {
+        console.log('No KYC data found, setting status to not_submitted');
         setKycStatus('not_submitted');
         return 'not_submitted';
       }
@@ -223,6 +240,14 @@ export const UserProvider = ({ children }) => {
       setUser(updatedUser);
     }
   };
+
+  // Expose updateKYCStatus globally for Settings component
+  React.useEffect(() => {
+    window.updateKYCStatus = updateKYCStatus;
+    return () => {
+      delete window.updateKYCStatus;
+    };
+  }, [updateKYCStatus]);
 
   // Save user data to localStorage
   const saveUserData = async (userData) => {

@@ -99,15 +99,6 @@ const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
                   Buy
                 </button>
               </li>
-              <li>
-                <button 
-                  type="button" 
-                  className={`nav__link ${currentPage === 'my-properties' ? 'nav__link--active' : ''}`}
-                  onClick={() => handleNavigation('my-properties')}
-                >
-                  My Properties
-                </button>
-              </li>
               <li><button type="button" className="nav__link">Rent</button></li>
               <li><button type="button" className="nav__link">Sell</button></li>
               <li>
@@ -164,6 +155,7 @@ const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
             <div className="nav__actions">
               {account && isAuthenticated && <NotificationSystem />}
               
+              {/* My Properties emoji button - only when authenticated */}
               {account && isAuthenticated && (
                 <button
                   type="button"

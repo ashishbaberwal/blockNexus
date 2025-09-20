@@ -75,6 +75,12 @@ function App() {
       case 'properties':
         return <PropertiesPage homes={homes} togglePop={togglePop} />;
       case 'my-properties':
+        // Check if user is authenticated before showing My Properties
+        if (!account) {
+          // Redirect to home if not connected
+          setCurrentPage('home');
+          return <HomePage homes={homes} togglePop={togglePop} setCurrentPage={setCurrentPage} />;
+        }
         return <PropertyList />;
       case 'about':
         return <AboutPage />;
