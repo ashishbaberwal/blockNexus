@@ -27,11 +27,6 @@ const EnhancedPropertyForm = ({ property, onSave, onCancel }) => {
         kycDocumentNumber: "",
 
         // Additional Details
-        price: "",
-        parking: "",
-        furnishing: "",
-        facing: "",
-        age: "",
         amenities: [],
         nearbyFacilities: [],
 
@@ -45,7 +40,7 @@ const EnhancedPropertyForm = ({ property, onSave, onCancel }) => {
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [currentStep, setCurrentStep] = useState(1);
-    const totalSteps = 4;
+    const totalSteps = 2;
     const [selectedAmenities, setSelectedAmenities] = useState([]);
     const [selectedNearbyFacilities, setSelectedNearbyFacilities] = useState(
         []
@@ -189,36 +184,18 @@ const EnhancedPropertyForm = ({ property, onSave, onCancel }) => {
         const newErrors = {};
 
         if (step === 1) {
-            if (!formData.title.trim()) newErrors.title = "Title is required";
+            if (!formData.title.trim()) newErrors.title = "Property title is required";
             if (!formData.fullAddress.trim())
-                newErrors.fullAddress = "Full address is required";
-            if (!formData.latitude) newErrors.latitude = "Latitude is required";
-            if (!formData.longitude)
-                newErrors.longitude = "Longitude is required";
+                newErrors.fullAddress = "Address is required";
             if (!formData.type) newErrors.type = "Property type is required";
             if (!formData.builtUpArea)
-                newErrors.builtUpArea = "Built-up area is required";
-            if (!formData.currentStatus)
-                newErrors.currentStatus = "Current status is required";
+                newErrors.builtUpArea = "Area is required";
             if (!formData.description.trim())
                 newErrors.description = "Description is required";
-        }
-
-        if (step === 2) {
             if (!formData.ownerName.trim())
                 newErrors.ownerName = "Owner name is required";
-            if (!formData.ownerEmail.trim())
-                newErrors.ownerEmail = "Owner email is required";
             if (!formData.ownerPhone.trim())
-                newErrors.ownerPhone = "Owner phone is required";
-            if (!formData.kycDocumentType)
-                newErrors.kycDocumentType = "KYC document type is required";
-            if (!formData.kycDocumentNumber.trim())
-                newErrors.kycDocumentNumber = "KYC document number is required";
-        }
-
-        if (step === 3) {
-            if (!formData.price) newErrors.price = "Price is required";
+                newErrors.ownerPhone = "Phone number is required";
         }
 
         setErrors(newErrors);
@@ -275,17 +252,17 @@ const EnhancedPropertyForm = ({ property, onSave, onCancel }) => {
 
     const renderStep1 = () => (
         <div className="form-step">
-            <h3>1. Core Property Information</h3>
+            <h3>1. Property Information</h3>
 
             <div className="form-group">
-                <label htmlFor="title">Title / Listing Name *</label>
+                <label htmlFor="title">Property Title *</label>
                 <input
                     type="text"
                     id="title"
                     name="title"
                     value={formData.title}
                     onChange={handleInputChange}
-                    placeholder="e.g., 3BHK Flat in Noida Sector 62"
+                    placeholder="e.g., Beautiful 3BHK Apartment"
                     className={errors.title ? "error" : ""}
                 />
                 {errors.title && (
@@ -294,57 +271,19 @@ const EnhancedPropertyForm = ({ property, onSave, onCancel }) => {
             </div>
 
             <div className="form-group">
-                <label htmlFor="fullAddress">Full Address *</label>
+                <label htmlFor="fullAddress">Address *</label>
                 <textarea
                     id="fullAddress"
                     name="fullAddress"
                     value={formData.fullAddress}
                     onChange={handleInputChange}
-                    placeholder="House/Flat No., Street, Locality, City, State, ZIP/Pin Code"
-                    rows="3"
+                    placeholder="Complete address with city, state, pincode"
+                    rows="2"
                     className={errors.fullAddress ? "error" : ""}
                 />
                 {errors.fullAddress && (
                     <span className="error-message">{errors.fullAddress}</span>
                 )}
-            </div>
-
-            <div className="form-row">
-                <div className="form-group">
-                    <label htmlFor="latitude">Latitude *</label>
-                    <input
-                        type="number"
-                        id="latitude"
-                        name="latitude"
-                        value={formData.latitude}
-                        onChange={handleInputChange}
-                        placeholder="e.g., 28.6139"
-                        step="any"
-                        className={errors.latitude ? "error" : ""}
-                    />
-                    {errors.latitude && (
-                        <span className="error-message">{errors.latitude}</span>
-                    )}
-                </div>
-
-                <div className="form-group">
-                    <label htmlFor="longitude">Longitude *</label>
-                    <input
-                        type="number"
-                        id="longitude"
-                        name="longitude"
-                        value={formData.longitude}
-                        onChange={handleInputChange}
-                        placeholder="e.g., 77.2090"
-                        step="any"
-                        className={errors.longitude ? "error" : ""}
-                    />
-                    {errors.longitude && (
-                        <span className="error-message">
-                            {errors.longitude}
-                        </span>
-                    )}
-                </div>
             </div>
 
             <div className="form-row">
@@ -357,7 +296,7 @@ const EnhancedPropertyForm = ({ property, onSave, onCancel }) => {
                         onChange={handleInputChange}
                         className={errors.type ? "error" : ""}
                     >
-                        <option value="">Select Property Type</option>
+                        <option value="">Select Type</option>
                         {propertyTypes.map((type) => (
                             <option key={type.value} value={type.value}>
                                 {type.label}
@@ -370,21 +309,7 @@ const EnhancedPropertyForm = ({ property, onSave, onCancel }) => {
                 </div>
 
                 <div className="form-group">
-                    <label htmlFor="subType">Sub Type</label>
-                    <input
-                        type="text"
-                        id="subType"
-                        name="subType"
-                        value={formData.subType}
-                        onChange={handleInputChange}
-                        placeholder="e.g., 2BHK, 3BHK, Duplex"
-                    />
-                </div>
-            </div>
-
-            <div className="form-row">
-                <div className="form-group">
-                    <label htmlFor="builtUpArea">Built-up Area (sqft) *</label>
+                    <label htmlFor="builtUpArea">Area (sqft) *</label>
                     <input
                         type="number"
                         id="builtUpArea"
@@ -400,126 +325,38 @@ const EnhancedPropertyForm = ({ property, onSave, onCancel }) => {
                         </span>
                     )}
                 </div>
-
-                <div className="form-group">
-                    <label htmlFor="superArea">Super Area (sqft)</label>
-                    <input
-                        type="number"
-                        id="superArea"
-                        name="superArea"
-                        value={formData.superArea}
-                        onChange={handleInputChange}
-                        placeholder="e.g., 1400"
-                    />
-                </div>
-            </div>
-
-            <div className="form-row">
-                <div className="form-group">
-                    <label htmlFor="floorNumber">Floor Number</label>
-                    <input
-                        type="number"
-                        id="floorNumber"
-                        name="floorNumber"
-                        value={formData.floorNumber}
-                        onChange={handleInputChange}
-                        placeholder="e.g., 5"
-                    />
-                </div>
-
-                <div className="form-group">
-                    <label htmlFor="totalFloors">Total Floors</label>
-                    <input
-                        type="number"
-                        id="totalFloors"
-                        name="totalFloors"
-                        value={formData.totalFloors}
-                        onChange={handleInputChange}
-                        placeholder="e.g., 20"
-                    />
-                </div>
             </div>
 
             <div className="form-group">
-                <label htmlFor="currentStatus">Current Status *</label>
-                <select
-                    id="currentStatus"
-                    name="currentStatus"
-                    value={formData.currentStatus}
-                    onChange={handleInputChange}
-                    className={errors.currentStatus ? "error" : ""}
-                >
-                    <option value="">Select Current Status</option>
-                    <option value="vacant">Vacant</option>
-                    <option value="occupied">Occupied</option>
-                    <option value="under_construction">
-                        Under Construction
-                    </option>
-                    <option value="new_booking">New Booking</option>
-                    <option value="resale">Resale</option>
-                    <option value="ready_to_move">Ready to Move</option>
-                </select>
-                {errors.currentStatus && (
-                    <span className="error-message">
-                        {errors.currentStatus}
-                    </span>
-                )}
-            </div>
-
-            <div className="form-group">
-                <label htmlFor="description">Property Description *</label>
+                <label htmlFor="description">Description *</label>
                 <textarea
                     id="description"
                     name="description"
                     value={formData.description}
                     onChange={handleInputChange}
-                    placeholder="Describe your property in detail..."
-                    rows="4"
+                    placeholder="Describe your property..."
+                    rows="3"
                     className={errors.description ? "error" : ""}
                 />
                 {errors.description && (
                     <span className="error-message">{errors.description}</span>
                 )}
             </div>
-        </div>
-    );
-
-    const renderStep2 = () => (
-        <div className="form-step">
-            <h3>2. Owner/Seller Information</h3>
-
-            <div className="form-group">
-                <label htmlFor="ownerName">Owner Name *</label>
-                <input
-                    type="text"
-                    id="ownerName"
-                    name="ownerName"
-                    value={formData.ownerName}
-                    onChange={handleInputChange}
-                    placeholder="Full name as per legal documents"
-                    className={errors.ownerName ? "error" : ""}
-                />
-                {errors.ownerName && (
-                    <span className="error-message">{errors.ownerName}</span>
-                )}
-            </div>
 
             <div className="form-row">
                 <div className="form-group">
-                    <label htmlFor="ownerEmail">Email *</label>
+                    <label htmlFor="ownerName">Owner Name *</label>
                     <input
-                        type="email"
-                        id="ownerEmail"
-                        name="ownerEmail"
-                        value={formData.ownerEmail}
+                        type="text"
+                        id="ownerName"
+                        name="ownerName"
+                        value={formData.ownerName}
                         onChange={handleInputChange}
-                        placeholder="owner@example.com"
-                        className={errors.ownerEmail ? "error" : ""}
+                        placeholder="Full name"
+                        className={errors.ownerName ? "error" : ""}
                     />
-                    {errors.ownerEmail && (
-                        <span className="error-message">
-                            {errors.ownerEmail}
-                        </span>
+                    {errors.ownerName && (
+                        <span className="error-message">{errors.ownerName}</span>
                     )}
                 </div>
 
@@ -541,186 +378,63 @@ const EnhancedPropertyForm = ({ property, onSave, onCancel }) => {
                     )}
                 </div>
             </div>
-
-            <div className="form-row">
-                <div className="form-group">
-                    <label htmlFor="kycDocumentType">KYC Document Type *</label>
-                    <select
-                        id="kycDocumentType"
-                        name="kycDocumentType"
-                        value={formData.kycDocumentType}
-                        onChange={handleInputChange}
-                        className={errors.kycDocumentType ? "error" : ""}
-                    >
-                        <option value="">Select Document Type</option>
-                        {kycDocumentTypes.map((doc) => (
-                            <option key={doc} value={doc}>
-                                {doc}
-                            </option>
-                        ))}
-                    </select>
-                    {errors.kycDocumentType && (
-                        <span className="error-message">
-                            {errors.kycDocumentType}
-                        </span>
-                    )}
-                </div>
-
-                <div className="form-group">
-                    <label htmlFor="kycDocumentNumber">
-                        KYC Document Number *
-                    </label>
-                    <input
-                        type="text"
-                        id="kycDocumentNumber"
-                        name="kycDocumentNumber"
-                        value={formData.kycDocumentNumber}
-                        onChange={handleInputChange}
-                        placeholder="Document number"
-                        className={errors.kycDocumentNumber ? "error" : ""}
-                    />
-                    {errors.kycDocumentNumber && (
-                        <span className="error-message">
-                            {errors.kycDocumentNumber}
-                        </span>
-                    )}
-                </div>
-            </div>
-
-            <div className="form-group">
-                <label>KYC Document Upload</label>
-                <FileUpload
-                    onFilesUploaded={handleFilesUploaded}
-                    uploadedFiles={uploadedFiles}
-                    uploadedFolders={uploadedFolders}
-                />
-            </div>
         </div>
     );
 
-    const renderStep3 = () => (
+    const renderStep2 = () => (
         <div className="form-step">
-            <h3>3. Property Details & Pricing</h3>
+            <h3>2. Images & Contact</h3>
 
             <div className="form-group">
-                <label htmlFor="price">Price (₹) *</label>
+                <label htmlFor="ownerEmail">Email</label>
                 <input
-                    type="number"
-                    id="price"
-                    name="price"
-                    value={formData.price}
+                    type="email"
+                    id="ownerEmail"
+                    name="ownerEmail"
+                    value={formData.ownerEmail}
                     onChange={handleInputChange}
-                    placeholder="e.g., 5000000"
-                    className={errors.price ? "error" : ""}
+                    placeholder="owner@example.com"
                 />
-                {errors.price && (
-                    <span className="error-message">{errors.price}</span>
-                )}
             </div>
-
-            <div className="form-row">
-                <div className="form-group">
-                    <label htmlFor="parking">Parking</label>
-                    <select
-                        id="parking"
-                        name="parking"
-                        value={formData.parking}
-                        onChange={handleInputChange}
-                    >
-                        <option value="">Select</option>
-                        <option value="0">No Parking</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4+">4+</option>
-                    </select>
-                </div>
-
-                <div className="form-group">
-                    <label htmlFor="furnishing">Furnishing</label>
-                    <select
-                        id="furnishing"
-                        name="furnishing"
-                        value={formData.furnishing}
-                        onChange={handleInputChange}
-                    >
-                        <option value="">Select</option>
-                        <option value="furnished">Furnished</option>
-                        <option value="semi_furnished">Semi-Furnished</option>
-                        <option value="unfurnished">Unfurnished</option>
-                    </select>
-                </div>
-            </div>
-
-            <div className="form-group">
-                <label>Amenities</label>
-                <div className="checkbox-grid">
-                    {amenityOptions.map((amenity) => (
-                        <label key={amenity} className="checkbox-label">
-                            <input
-                                type="checkbox"
-                                checked={selectedAmenities.includes(amenity)}
-                                onChange={() => handleAmenityChange(amenity)}
-                            />
-                            <span>{amenity}</span>
-                        </label>
-                    ))}
-                </div>
-            </div>
-
-            <div className="form-group">
-                <label>Nearby Facilities</label>
-                <div className="checkbox-grid">
-                    {nearbyFacilities.map((facility) => (
-                        <label key={facility} className="checkbox-label">
-                            <input
-                                type="checkbox"
-                                checked={selectedNearbyFacilities.includes(
-                                    facility
-                                )}
-                                onChange={() =>
-                                    handleNearbyFacilityChange(facility)
-                                }
-                            />
-                            <span>{facility}</span>
-                        </label>
-                    ))}
-                </div>
-            </div>
-        </div>
-    );
-
-    const renderStep4 = () => (
-        <div className="form-step">
-            <h3>4. Images & Final Details</h3>
 
             <div className="form-group">
                 <label>Property Images</label>
-                <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="file-input"
-                />
-                <div className="image-preview">
-                    {formData.images.map((image, index) => (
-                        <div key={index} className="image-item">
-                            <img src={image} alt={`Property ${index + 1}`} />
-                            <button
-                                type="button"
-                                onClick={() => removeImage(index)}
-                                className="remove-image"
-                            >
-                                ×
-                            </button>
-                        </div>
-                    ))}
+                <div className="image-upload-section">
+                    <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="file-input"
+                        id="imageUpload"
+                    />
+                    <label htmlFor="imageUpload" className="upload-button">
+                        📷 Add Photos
+                    </label>
+                    <p className="upload-hint">Add photos to showcase your property</p>
                 </div>
+                
+                {formData.images.length > 0 && (
+                    <div className="image-preview-grid">
+                        {formData.images.map((image, index) => (
+                            <div key={index} className="image-preview-item">
+                                <img src={image} alt={`Property ${index + 1}`} />
+                                <button
+                                    type="button"
+                                    onClick={() => removeImage(index)}
+                                    className="remove-image-btn"
+                                    title="Remove image"
+                                >
+                                    ×
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
             <div className="form-group">
-                <label>Legal Documents & Files</label>
+                <label>Additional Documents (Optional)</label>
                 <FileUpload
                     onFilesUploaded={handleFilesUploaded}
                     uploadedFiles={uploadedFiles}
@@ -729,6 +443,10 @@ const EnhancedPropertyForm = ({ property, onSave, onCancel }) => {
             </div>
         </div>
     );
+
+
+
+
 
     return (
         <div className="property-form">
@@ -743,8 +461,6 @@ const EnhancedPropertyForm = ({ property, onSave, onCancel }) => {
                 <div className="form-content">
                     {currentStep === 1 && renderStep1()}
                     {currentStep === 2 && renderStep2()}
-                    {currentStep === 3 && renderStep3()}
-                    {currentStep === 4 && renderStep4()}
 
                     <div className="form-actions">
                         <div className="form-navigation">

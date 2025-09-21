@@ -70,7 +70,7 @@ function App() {
         name: "Villa in Bangalore",
         address: "Whitefield, Bangalore, Karnataka 560066",
         description: "Spacious 4BHK independent villa with garden and parking in Bangalore's IT hub",
-        image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=500&h=300&fit=crop",
+        image: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=500&h=300&fit=crop",
         id: "5",
         attributes: [
           { trait_type: "Purchase Price", value: 12 },
@@ -85,7 +85,7 @@ function App() {
         name: "Commercial Land in Gurgaon",
         address: "Sector 62, Gurgaon, Haryana 122001",
         description: "Prime commercial land parcel in Gurgaon's business district, ideal for office complex or retail development",
-        image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&h=300&fit=crop",
+        image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=500&h=300&fit=crop",
         id: "6",
         attributes: [
           { trait_type: "Purchase Price", value: 25 },
@@ -100,7 +100,7 @@ function App() {
         name: "Residential Plot in Pune",
         address: "Hinjewadi, Pune, Maharashtra 411057",
         description: "Well-located residential plot in Pune's IT corridor, perfect for building your dream home",
-        image: "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=500&h=300&fit=crop",
+        image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=500&h=300&fit=crop",
         id: "7",
         attributes: [
           { trait_type: "Purchase Price", value: 6 },
@@ -115,7 +115,7 @@ function App() {
         name: "Farmhouse in Goa",
         address: "North Goa, Goa 403001",
         description: "Beautiful farmhouse with coconut groves and traditional Goan architecture, perfect for vacation home",
-        image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=500&h=300&fit=crop",
+        image: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=500&h=300&fit=crop",
         id: "8",
         attributes: [
           { trait_type: "Purchase Price", value: 15 },
@@ -130,7 +130,7 @@ function App() {
         name: "Penthouse in Delhi",
         address: "Connaught Place, New Delhi, Delhi 110001",
         description: "Luxury penthouse in the heart of Delhi with panoramic city views and premium amenities",
-        image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=500&h=300&fit=crop",
+        image: "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=500&h=300&fit=crop",
         id: "9",
         attributes: [
           { trait_type: "Purchase Price", value: 18 },
@@ -145,7 +145,7 @@ function App() {
         name: "Agricultural Land in Punjab",
         address: "Ludhiana, Punjab 141001",
         description: "Fertile agricultural land in Punjab, ideal for farming or agricultural investment",
-        image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&h=300&fit=crop",
+        image: "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=500&h=300&fit=crop",
         id: "10",
         attributes: [
           { trait_type: "Purchase Price", value: 4 },
@@ -160,7 +160,7 @@ function App() {
         name: "Townhouse in Chennai",
         address: "OMR, Chennai, Tamil Nadu 600096",
         description: "Modern townhouse in Chennai's IT corridor with contemporary design and smart home features",
-        image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=500&h=300&fit=crop",
+        image: "https://images.unsplash.com/photo-1494526585095-c41746248156?w=500&h=300&fit=crop",
         id: "11",
         attributes: [
           { trait_type: "Purchase Price", value: 9 },
@@ -175,7 +175,7 @@ function App() {
         name: "Industrial Land in Ahmedabad",
         address: "Sanand, Ahmedabad, Gujarat 382110",
         description: "Large industrial land parcel in Gujarat's industrial hub, perfect for manufacturing or warehousing",
-        image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&h=300&fit=crop",
+        image: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=500&h=300&fit=crop",
         id: "12",
         attributes: [
           { trait_type: "Purchase Price", value: 20 },
