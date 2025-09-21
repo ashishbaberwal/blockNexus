@@ -7,6 +7,7 @@ import {
   getVerificationStatusDisplay,
   getRejectionReasonDisplay
 } from '../services/propertyVerificationService';
+import { createSampleVerifications, clearAllVerifications } from '../utils/sampleData';
 import './InspectorDashboard.css';
 
 const InspectorDashboard = ({ defaultTab = 'pending', title = 'Property Verification Dashboard' }) => {
@@ -58,6 +59,36 @@ const InspectorDashboard = ({ defaultTab = 'pending', title = 'Property Verifica
       setStats(verificationStats);
     } catch (error) {
       console.error('Error loading stats:', error);
+    }
+  };
+
+  const handleCreateSampleData = () => {
+    try {
+      const success = createSampleVerifications();
+      if (success) {
+        loadVerifications();
+        loadStats();
+        alert('Sample verification data created successfully!');
+      } else {
+        alert('Please add some properties first, then try creating sample data.');
+      }
+    } catch (error) {
+      console.error('Error creating sample data:', error);
+      alert('Error creating sample data. Please try again.');
+    }
+  };
+
+  const handleClearAllData = () => {
+    if (window.confirm('Are you sure you want to clear all verification data? This action cannot be undone.')) {
+      try {
+        clearAllVerifications();
+        loadVerifications();
+        loadStats();
+        alert('All verification data cleared successfully!');
+      } catch (error) {
+        console.error('Error clearing data:', error);
+        alert('Error clearing data. Please try again.');
+      }
     }
   };
 
@@ -349,6 +380,21 @@ const InspectorDashboard = ({ defaultTab = 'pending', title = 'Property Verifica
             className="search-input"
           />
           <span className="search-icon">🔍</span>
+        </div>
+        
+        <div className="control-buttons">
+          <button 
+            className="btn btn--primary"
+            onClick={handleCreateSampleData}
+          >
+            Create Sample Data
+          </button>
+          <button 
+            className="btn btn--outline"
+            onClick={handleClearAllData}
+          >
+            Clear All Data
+          </button>
         </div>
       </div>
 

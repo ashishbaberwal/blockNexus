@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import localDocumentStorage from '../utils/localDocumentStorage';
+import { getAutoAssignedRole, saveWalletRole, getWalletRole } from '../config/roleAssignment';
 
 const UserContext = createContext();
 
@@ -28,12 +29,16 @@ export const UserProvider = ({ children }) => {
     
     if (savedUser && savedAccount) {
       const userData = JSON.parse(savedUser);
+      console.log('🔍 Initial load - userData:', userData);
       setUser(userData);
       setAccount(savedAccount);
       setIsAuthenticated(true);
-      setUserRole(userData.role || 'buyer');
+      const role = userData.role || 'buyer';
+      console.log('🔍 Initial load - setting role:', role);
+      setUserRole(role);
     }
   }, []);
+
 
   // Check KYC status when user changes
   useEffect(() => {
@@ -100,9 +105,8 @@ export const UserProvider = ({ children }) => {
       const roleMapping = {
         'buyer': 'buyer',
         'seller': 'seller',
-        'agent': 'agent',
-        'investor': 'investor',
-        'inspector': 'inspector'
+        'inspector': 'inspector',
+        'lender': 'lender'
       };
 
       const userData = {
@@ -172,7 +176,14 @@ export const UserProvider = ({ children }) => {
       setUser(userData);
       setAccount(walletAddress);
       setIsAuthenticated(true);
-      setUserRole(userData.role || 'buyer');
+      
+      // Get role for this wallet (either saved or from user data)
+      const savedRole = getWalletRole(walletAddress);
+      const userRole = savedRole || userData.role || 'buyer';
+      setUserRole(userRole);
+      
+      // Save the role for this wallet
+      saveWalletRole(walletAddress, userRole);
       
       return userData;
     } catch (error) {
@@ -295,6 +306,40 @@ export const UserProvider = ({ children }) => {
     return userData.walletAddress.toLowerCase() === walletAddress.toLowerCase();
   };
 
+  // Change role for current wallet
+  const changeRoleForCurrentWallet = (newRole) => {
+    if (!account) {
+      console.error('No wallet connected');
+      return false;
+    }
+
+    try {
+      // Save role for current wallet
+      saveWalletRole(account, newRole);
+      
+      // Update current role
+      setUserRole(newRole);
+      
+      // Update user data
+      if (user) {
+        const updatedUser = {
+          ...user,
+          role: newRole,
+          lastUpdated: new Date().toISOString()
+        };
+        localStorage.setItem('blockNexusUser', JSON.stringify(updatedUser));
+        setUser(updatedUser);
+      }
+      
+      console.log('✅ Role changed for wallet:', account, '->', newRole);
+      return true;
+    } catch (error) {
+      console.error('Error changing role:', error);
+      return false;
+    }
+  };
+
+
   const value = {
     user: user ? { ...user, kycVerified: kycStatus === 'approved' } : null, // Add kycVerified computed property
     isAuthenticated,
@@ -310,7 +355,8 @@ export const UserProvider = ({ children }) => {
     signAuthenticationMessage,
     checkKYCStatus,
     updateKYCStatus,
-    saveUserData
+    saveUserData,
+    changeRoleForCurrentWallet
   };
 
   return (

@@ -212,9 +212,8 @@ const UserRegistration = ({ onClose, walletAddress }) => {
                 >
                   <option value="buyer">Buyer - Looking to purchase properties</option>
                   <option value="seller">Seller - Looking to sell properties</option>
-                  <option value="agent">Real Estate Agent</option>
-                  <option value="investor">Investor - Looking for investment opportunities</option>
-                  <option value="inspector">Inspector/Government Official - Property verification & compliance</option>
+                  <option value="inspector">Inspector - Property verification & compliance</option>
+                  <option value="lender">Lender - Provide financing for property transactions</option>
                 </select>
               </div>
 
@@ -317,41 +316,6 @@ const UserRegistration = ({ onClose, walletAddress }) => {
             )}
           </div>
 
-          {/* Debug Section */}
-          <div className="debug-section" style={{ 
-            marginTop: '20px', 
-            padding: '15px', 
-            backgroundColor: '#f0f0f0', 
-            borderRadius: '8px',
-            fontSize: '12px'
-          }}>
-            <h4>🔧 Debug Tools</h4>
-            <button 
-              type="button"
-              onClick={async () => {
-                alert(`✅ Local Storage System Active\nWallet: ${walletAddress}`);
-              }}
-              style={{ margin: '5px', padding: '5px 10px' }}
-            >
-              Test Local Storage
-            </button>
-            <button 
-              type="button"
-              onClick={async () => {
-                const kycData = localStorage.getItem('blockNexus_KYC_Data');
-                alert(kycData ? 
-                  `✅ Local KYC System Active\nData entries: ${Object.keys(JSON.parse(kycData)).length}` : 
-                  `✅ Local KYC System Ready (No data yet)`
-                );
-              }}
-              style={{ margin: '5px', padding: '5px 10px' }}
-            >
-              Test KYC System
-            </button>
-            <div style={{ marginTop: '10px', fontSize: '11px' }}>
-              💡 Open browser console (F12) to see detailed logs during registration
-            </div>
-          </div>
         </form>
       </div>
     </div>

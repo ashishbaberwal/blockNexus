@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useUser } from '../contexts/UserContext';
 import KYCVerification from './KYCVerification';
+import WalletRoleManager from './WalletRoleManager';
 
 const Settings = ({ onClose, account }) => {
   const { darkMode, toggleTheme, theme } = useTheme();
-  const { isAuthenticated, user, updateUser } = useUser();
+  const { isAuthenticated, user, updateUser, userRole } = useUser();
   const [activeTab, setActiveTab] = useState('appearance');
   const [showKYC, setShowKYC] = useState(false);
 
@@ -15,6 +16,24 @@ const Settings = ({ onClose, account }) => {
   const handleThemeToggle = () => {
     toggleTheme();
   };
+
+  const handleRoleChange = (newRole) => {
+    if (!user) return;
+    
+    const updatedUser = {
+      ...user,
+      role: newRole,
+      userType: newRole, // Also update userType for consistency
+      lastUpdated: new Date().toISOString()
+    };
+    
+    localStorage.setItem('blockNexusUser', JSON.stringify(updatedUser));
+    updateUser(updatedUser);
+    
+    // Force page reload to update role in context
+    window.location.reload();
+  };
+
 
   const handleKYCSubmit = async (kycData) => {
     try {
@@ -105,6 +124,12 @@ const Settings = ({ onClose, account }) => {
                   🔒 Privacy
                 </button>
               )}
+              <button 
+                className={`tab-button ${activeTab === 'wallet-roles' ? 'active' : ''}`}
+                onClick={() => setActiveTab('wallet-roles')}
+              >
+                🔄 Wallet Roles
+              </button>
               <button 
                 className={`tab-button ${activeTab === 'developer' ? 'active' : ''}`}
                 onClick={() => setActiveTab('developer')}
@@ -287,56 +312,17 @@ const Settings = ({ onClose, account }) => {
                 </div>
               )}
 
+              {activeTab === 'wallet-roles' && (
+                <div className="settings-section">
+                  <WalletRoleManager />
+                </div>
+              )}
+
               {activeTab === 'developer' && (
                 <div className="settings-section">
                   <h3>Developer Tools</h3>
                   <p>Testing and debugging tools for developers</p>
                   
-                  <div className="setting-item">
-                    <div className="setting-info">
-                      <h4>LocalStorage Data Test</h4>
-                      <p>View and manage localStorage data including KYC documents</p>
-                    </div>
-                    <div className="setting-control">
-                      <button 
-                        className="btn btn--secondary"
-                        onClick={() => {
-                          const data = localStorage.getItem('blockNexus_kyc_data');
-                          console.log('LocalStorage KYC Data:', data ? JSON.parse(data) : 'No data found');
-                          alert('Check console for localStorage data');
-                        }}
-                      >
-                        View localStorage Data
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="setting-item">
-                    <div className="setting-info">
-                      <h4>Console Logs</h4>
-                      <p>Enable detailed console logging for debugging</p>
-                    </div>
-                    <div className="setting-control">
-                      <label className="toggle-switch">
-                        <input type="checkbox" defaultChecked />
-                        <span className="toggle-slider"></span>
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="setting-item">
-                    <div className="setting-info">
-                      <h4>Environment Info</h4>
-                      <p>Current environment and build information</p>
-                    </div>
-                    <div className="setting-control">
-                      <div style={{ fontSize: '12px', fontFamily: 'monospace' }}>
-                        <div>Environment: Development</div>
-                        <div>React: {React.version}</div>
-                        <div>User Agent: {navigator.userAgent.substring(0, 50)}...</div>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               )}
             </div>

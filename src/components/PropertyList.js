@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { propertyStorage, propertyTypes } from '../services/propertyStorage';
 import PropertyCard from './PropertyCard';
 import PropertyForm from './PropertyForm';
+import EnhancedPropertyForm from './EnhancedPropertyForm';
 import './PropertyList.css';
 
 const PropertyList = () => {
@@ -11,6 +12,7 @@ const PropertyList = () => {
   const [filterType, setFilterType] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingProperty, setEditingProperty] = useState(null);
+  const [useEnhancedForm, setUseEnhancedForm] = useState(true);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [sortBy, setSortBy] = useState('createdAt'); // 'createdAt', 'propertyNumber', 'type'
   const [sortOrder, setSortOrder] = useState('desc'); // 'asc' or 'desc'
@@ -115,11 +117,33 @@ const PropertyList = () => {
 
   if (showForm) {
     return (
-      <PropertyForm
-        property={editingProperty}
-        onSave={handleSaveProperty}
-        onCancel={handleCloseForm}
-      />
+      <div>
+        <div className="form-toggle">
+          <label className="toggle-switch">
+            <input
+              type="checkbox"
+              checked={useEnhancedForm}
+              onChange={(e) => setUseEnhancedForm(e.target.checked)}
+            />
+            <span className="toggle-slider"></span>
+            <span className="toggle-label">Enhanced Form</span>
+          </label>
+        </div>
+        
+        {useEnhancedForm ? (
+          <EnhancedPropertyForm
+            property={editingProperty}
+            onSave={handleSaveProperty}
+            onCancel={handleCloseForm}
+          />
+        ) : (
+          <PropertyForm
+            property={editingProperty}
+            onSave={handleSaveProperty}
+            onCancel={handleCloseForm}
+          />
+        )}
+      </div>
     );
   }
 

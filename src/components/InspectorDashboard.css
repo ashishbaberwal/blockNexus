@@ -96,6 +96,18 @@
     gap: 20px;
 }
 
+.control-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.control-buttons .btn {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+    min-width: 120px;
+}
+
 .search-box {
     position: relative;
     flex: 1;

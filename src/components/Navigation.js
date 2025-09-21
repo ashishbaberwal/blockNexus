@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react';
 import logo from '../assets/logo.svg';
 import { useUser } from '../contexts/UserContext';
-import { useTheme } from '../contexts/ThemeContext';
 import UserRegistration from './UserRegistration';
 import UserProfile from './UserProfile';
 import Settings from './Settings';
 import NotificationSystem from './NotificationSystem';
 
 const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
-  const { user, isAuthenticated, loginUser, checkUserExists, userRole } = useUser();
+  const { user, isAuthenticated, loginUser, checkUserExists, userRole, changeRoleForCurrentWallet, getAllWalletRoles } = useUser();
   const [showRegistration, setShowRegistration] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -29,6 +28,51 @@ const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
     };
   }, [mobileMenuOpen]);
 
+  // Listen for MetaMask account changes
+  useEffect(() => {
+    const handleAccountsChanged = async (accounts) => {
+      if (accounts.length === 0) {
+        // User disconnected wallet
+        setAccount(null);
+        setAuthError('');
+      } else {
+        const newAccount = accounts[0];
+        if (newAccount !== account) {
+          console.log('🔄 MetaMask account changed to:', newAccount);
+          setAccount(newAccount);
+          
+          // Check if user exists for this wallet
+          if (checkUserExists(newAccount)) {
+            try {
+              await loginUser(newAccount);
+              setAuthError('');
+              console.log('✅ Auto-logged in with new wallet, role:', userRole);
+              
+              // Role switching is now completely automatic
+              console.log('🔄 Wallet switched - role will be automatically applied');
+            } catch (error) {
+              console.error('❌ Auto-login failed:', error);
+              setAuthError('Failed to authenticate with new wallet');
+            }
+          } else {
+            // New wallet, show registration
+            setShowRegistration(true);
+          }
+        }
+      }
+    };
+
+    if (window.ethereum) {
+      window.ethereum.on('accountsChanged', handleAccountsChanged);
+      
+      return () => {
+        if (window.ethereum.removeListener) {
+          window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        }
+      };
+    }
+  }, [account, checkUserExists, loginUser, userRole, setAccount]);
+
   const connectHandler = async () => {
     try {
       const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
@@ -40,6 +84,7 @@ const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
         try {
           await loginUser(walletAddress);
           setAuthError('');
+          console.log('🔍 User logged in with role:', userRole);
         } catch (error) {
           setAuthError('Authentication failed. Please try again.');
         }
@@ -99,8 +144,6 @@ const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
                   Buy
                 </button>
               </li>
-              <li><button type="button" className="nav__link">Rent</button></li>
-              <li><button type="button" className="nav__link">Sell</button></li>
               <li>
                 <button 
                   type="button" 
@@ -111,26 +154,15 @@ const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
                 </button>
               </li>
               {account && isAuthenticated && userRole === 'inspector' && (
-                <>
-                  <li>
-                    <button 
-                      type="button" 
-                      className={`nav__link ${currentPage === 'inspector' ? 'nav__link--active' : ''}`}
-                      onClick={() => handleNavigation('inspector')}
-                    >
-                      Inspector
-                    </button>
-                  </li>
-                  <li>
-                    <button 
-                      type="button" 
-                      className={`nav__link ${currentPage === 'approve' ? 'nav__link--active' : ''}`}
-                      onClick={() => handleNavigation('approve')}
-                    >
-                      Approve
-                    </button>
-                  </li>
-                </>
+                <li>
+                  <button 
+                    type="button" 
+                    className={`nav__link ${currentPage === 'inspector' ? 'nav__link--active' : ''}`}
+                    onClick={() => handleNavigation('inspector')}
+                  >
+                    Inspector
+                  </button>
+                </li>
               )}
           </ul>
 

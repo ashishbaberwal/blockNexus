@@ -1,0 +1,355 @@
+/* Wallet Role Manager Styles */
+.wallet-role-manager {
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.wallet-role-manager h3 {
+    margin: 0 0 10px 0;
+    color: #333;
+    font-size: 1.5rem;
+}
+
+.wallet-role-manager p {
+    color: #666;
+    margin-bottom: 30px;
+    line-height: 1.5;
+}
+
+.current-wallet-section {
+    margin-bottom: 30px;
+}
+
+.current-wallet-section h4 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 1.2rem;
+}
+
+.wallet-card {
+    background: white;
+    border: 2px solid #e1e5e9;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.wallet-card.current {
+    border-color: #667eea;
+    background: #f8f9ff;
+}
+
+.wallet-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.wallet-info {
+    flex: 1;
+}
+
+.wallet-address {
+    font-family: "Courier New", monospace;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+    font-size: 1.1rem;
+}
+
+.current-badge {
+    background: #667eea;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    margin-left: 10px;
+    font-weight: 500;
+}
+
+.wallet-role {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.role-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.role-badge.buyer {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.role-badge.seller {
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.role-badge.agent {
+    background: #e8f5e8;
+    color: #388e3c;
+}
+
+.role-badge.investor {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.role-badge.inspector {
+    background: #fce4ec;
+    color: #c2185b;
+}
+
+.role-description {
+    color: #666;
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+.wallet-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.role-select {
+    padding: 8px 12px;
+    border: 2px solid #e1e5e9;
+    border-radius: 6px;
+    background: white;
+    font-size: 0.9rem;
+    min-width: 120px;
+}
+
+.role-select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.all-wallets-section {
+    margin-bottom: 30px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.section-header h4 {
+    margin: 0;
+    color: #333;
+    font-size: 1.2rem;
+}
+
+.add-wallet-form {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 15px;
+    align-items: end;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.form-group label {
+    font-weight: 500;
+    color: #333;
+    font-size: 0.9rem;
+}
+
+.wallet-input {
+    padding: 10px 12px;
+    border: 2px solid #e1e5e9;
+    border-radius: 6px;
+    font-family: "Courier New", monospace;
+    font-size: 0.9rem;
+}
+
+.wallet-input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.wallet-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 2px dashed #e1e5e9;
+}
+
+.instructions {
+    background: #f0f8ff;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+}
+
+.instructions h4 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 1.1rem;
+}
+
+.instructions ol {
+    margin: 0;
+    padding-left: 20px;
+    color: #666;
+    line-height: 1.6;
+}
+
+.instructions li {
+    margin-bottom: 8px;
+}
+
+.auto-assign-info {
+    text-align: left;
+    margin-bottom: 15px;
+}
+
+.auto-assign-info p {
+    margin: 5px 0;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.pattern-info {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+    margin-top: 15px;
+}
+
+.pattern-info h5 {
+    margin: 0 0 10px 0;
+    color: #333;
+    font-size: 1rem;
+}
+
+.pattern-info ul {
+    margin: 0;
+    padding-left: 20px;
+    color: #666;
+}
+
+.pattern-info li {
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+.pattern-info code {
+    background: #e9ecef;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: "Courier New", monospace;
+    font-size: 0.8rem;
+}
+
+.btn {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn--primary {
+    background: #667eea;
+    color: white;
+}
+
+.btn--primary:hover:not(:disabled) {
+    background: #5a6fd8;
+    transform: translateY(-1px);
+}
+
+.btn--outline {
+    background: transparent;
+    color: #667eea;
+    border: 2px solid #667eea;
+}
+
+.btn--outline:hover:not(:disabled) {
+    background: #667eea;
+    color: white;
+}
+
+.btn--danger {
+    background: #dc3545;
+    color: white;
+}
+
+.btn--danger:hover:not(:disabled) {
+    background: #c82333;
+}
+
+.btn--small {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .wallet-role-manager {
+        padding: 15px;
+    }
+
+    .wallet-card {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+
+    .wallet-actions {
+        justify-content: center;
+    }
+
+    .add-wallet-form {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .section-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+}

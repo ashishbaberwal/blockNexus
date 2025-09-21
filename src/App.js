@@ -92,13 +92,6 @@ function App() {
           return <HomePage homes={homes} togglePop={togglePop} setCurrentPage={setCurrentPage} />;
         }
         return <InspectorDashboard defaultTab="pending" title="Property Verification Dashboard" />;
-      case 'approve':
-        // Check if user is authenticated and has inspector role
-        if (!account) {
-          setCurrentPage('home');
-          return <HomePage homes={homes} togglePop={togglePop} setCurrentPage={setCurrentPage} />;
-        }
-        return <InspectorDashboard defaultTab="pending" title="Approve Properties" />;
       default:
         return <HomePage homes={homes} togglePop={togglePop} setCurrentPage={setCurrentPage} />;
     }
