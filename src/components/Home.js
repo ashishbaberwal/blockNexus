@@ -725,7 +725,7 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
                   </button>
                 ) : userRole === 'lender' ? (
                   <button className="home__buy" onClick={lendHandler} disabled={hasLended}>
-                    Approve & Lend
+                    {hasLended ? 'Funds Transferred' : 'Approve & Lend'}
                   </button>
                 ) : userRole === 'seller' ? (
                   <button className="home__buy" onClick={sellHandler} disabled={hasSold}>

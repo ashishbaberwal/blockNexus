@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useUser } from '../contexts/UserContext';
 import VerificationStatus from './VerificationStatus';
 
-const UserProfile = ({ onClose }) => {
+const UserProfile = ({ onClose, onNavigateHome }) => {
   const { user, updateUserProfile, logoutUser } = useUser();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -334,7 +334,17 @@ const UserProfile = ({ onClose }) => {
 
           {/* Profile Footer */}
           <div className="profile__footer">
-            <button onClick={logoutUser} className="btn btn--danger">
+            <button 
+              onClick={() => {
+                logoutUser(() => {
+                  onClose(); // Close the profile modal
+                  if (onNavigateHome) {
+                    onNavigateHome(); // Navigate to home page
+                  }
+                });
+              }} 
+              className="btn btn--danger"
+            >
               Logout
             </button>
           </div>

@@ -191,10 +191,6 @@ const TransactionProgress = ({ transaction, userRole }) => {
                   )}
                 </div>
               </div>
-              
-              {index < steps.length - 1 && (
-                <div className={`progress-line ${status === 'completed' ? 'completed' : ''}`} />
-              )}
             </div>
           );
         })}

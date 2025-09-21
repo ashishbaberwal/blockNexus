@@ -738,6 +738,104 @@ body {
     box-shadow: 0 0 0 3px rgba(255, 143, 28, 0.2);
 }
 
+/* Profile Picture Upload Styles */
+.profile-picture-section {
+    margin: 25px 0;
+}
+
+.profile-picture-upload {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-top: 10px;
+}
+
+.profile-preview,
+.profile-placeholder {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    position: relative;
+    overflow: hidden;
+    border: 3px solid var(--clr-orange);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.profile-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-placeholder {
+    background: linear-gradient(135deg, var(--clr-orange), #ff8c42);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 1.5em;
+}
+
+.remove-picture-btn {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #ff4757;
+    color: white;
+    border: none;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.remove-picture-btn:hover {
+    background: #ff3742;
+    transform: scale(1.1);
+}
+
+.upload-controls {
+    flex: 1;
+}
+
+.upload-btn {
+    display: inline-block;
+    background: var(--clr-orange);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    border: none;
+    text-decoration: none;
+    margin-bottom: 8px;
+}
+
+.upload-btn:hover {
+    background: var(--clr-orange-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 143, 28, 0.3);
+}
+
+.upload-hint {
+    font-size: 0.85em;
+    color: var(--clr-grey);
+    margin: 0;
+}
+
+:root.dark-theme .upload-hint {
+    color: var(--clr-grey-light);
+}
+
 .wallet-info {
     background: var(--clr-orange-translucent);
     padding: 20px;
@@ -953,6 +1051,8 @@ body {
     align-items: center;
     gap: 15px;
     flex: 1;
+    justify-content: flex-end;
+    margin-right: 20px; /* Move content more to the right */
 }
 
 .nav__actions {
@@ -1020,6 +1120,7 @@ body {
     display: flex;
     align-items: center;
     gap: 15px;
+    height: 50px; /* Match the connect button height */
 }
 
 .user-info {
@@ -1027,20 +1128,21 @@ body {
     align-items: center;
     gap: 10px;
     cursor: pointer;
-    padding: 8px 12px;
-    border-radius: 25px;
     transition: all 0.3s ease;
+    height: 50px; /* Match connect button height */
+    box-sizing: border-box;
 }
 
-.user-info:hover {
-    background: var(--clr-orange-translucent);
+.user-info:hover .user-avatar {
+    transform: scale(1.1);
+    box-shadow: 0 2px 10px rgba(255, 138, 0, 0.3);
 }
 
 .user-avatar {
-    width: 35px;
-    height: 35px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    background: var(--clr-orange);
+    background: linear-gradient(135deg, var(--clr-orange), #ff8c42);
     color: white;
     display: flex;
     align-items: center;
@@ -1048,6 +1150,39 @@ body {
     font-weight: 600;
     font-size: 0.9em;
     cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.user-avatar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.user-avatar:hover::before {
+    opacity: 1;
+}
+
+.user-avatar.profile-image {
+    padding: 0;
+    background: none;
+}
+
+.user-avatar.profile-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
 }
 
 .user-name {
@@ -2296,6 +2431,7 @@ header {
     border-radius: 15px;
     overflow: hidden;
     box-shadow: var(--glass-shadow);
+    position: relative; /* Add relative positioning for proper content flow */
 }
 
 :root.dark-theme .home__details {
@@ -2328,6 +2464,8 @@ header {
     position: sticky; /* Keep tabs at top when scrolling */
     top: 0;
     z-index: 10; /* Ensure tabs stay above content */
+    flex-shrink: 0; /* Prevent tabs from shrinking */
+    min-height: 60px; /* Ensure consistent tab height */
 }
 
 :root.dark-theme .home__tabs {
@@ -2380,13 +2518,45 @@ header {
     flex: 1;
     padding: 20px;
     overflow-y: auto;
-    max-height: calc(100vh - 200px); /* Prevent content from pushing tabs up */
+    max-height: calc(80vh - 120px); /* Adjust max height to ensure scrolling works */
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: var(--clr-orange) rgba(0, 0, 0, 0.1); /* Firefox */
+}
+
+/* Custom scrollbar for WebKit browsers (Chrome, Safari, Edge) */
+.home__overview::-webkit-scrollbar {
+    width: 8px;
+}
+
+.home__overview::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+}
+
+.home__overview::-webkit-scrollbar-thumb {
+    background: var(--clr-orange);
+    border-radius: 4px;
+    transition: background 0.3s ease;
+}
+
+.home__overview::-webkit-scrollbar-thumb:hover {
+    background: var(--clr-orange-dark);
 }
 
 .tab-content {
     height: 100%;
-    overflow-y: auto; /* Allow content to scroll within tab */
-    padding: 10px 0; /* Add some padding to content */
+    padding: 0; /* Remove top padding that was causing spacing issues */
+    margin-top: 10px; /* Add margin to provide space from tabs */
+}
+
+.tab-content h1 {
+    margin-top: 0; /* Remove top margin from title to prevent overlap */
+    margin-bottom: 15px;
+    font-size: 1.8rem;
+    line-height: 1.3;
+    word-wrap: break-word; /* Ensure long titles wrap properly */
+    overflow-wrap: break-word; /* Better text wrapping support */
+    max-width: 100%; /* Ensure title doesn't exceed container width */
 }
 
 .no-transaction,
@@ -2519,6 +2689,98 @@ header {
     align-items: center;
 
     cursor: default;
+}
+
+/* Home Modal Responsive Styles */
+@media screen and (max-width: 768px) {
+    .home__details {
+        flex-direction: column;
+        max-height: 90vh;
+        max-width: 95vw;
+        margin: 5vh auto;
+    }
+
+    .home__image {
+        flex: none;
+        height: 250px;
+        width: 100%;
+    }
+
+    .home__content {
+        flex: 1;
+        min-height: 0; /* Important for flexbox scrolling */
+    }
+
+    .home__tabs {
+        padding: 0 15px;
+        min-height: 50px;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    .tab-button {
+        padding: 10px 15px;
+        font-size: 0.8rem;
+        margin-left: 0;
+    }
+
+    .home__overview {
+        padding: 15px;
+        max-height: calc(90vh - 300px); /* Adjust for smaller screens */
+    }
+
+    .tab-content h1 {
+        font-size: 1.5rem;
+    }
+
+    .home__buy,
+    .home__contact {
+        width: 100%;
+        margin: 10px 0;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .home__details {
+        max-height: 95vh;
+        max-width: 98vw;
+        margin: 2.5vh auto;
+        border-radius: 10px;
+    }
+
+    .home__image {
+        height: 200px;
+    }
+
+    .home__tabs {
+        padding: 0 10px;
+        min-height: 45px;
+    }
+
+    .tab-button {
+        padding: 8px 12px;
+        font-size: 0.75rem;
+    }
+
+    .home__overview {
+        padding: 10px;
+        max-height: calc(95vh - 280px);
+    }
+
+    .tab-content h1 {
+        font-size: 1.3rem;
+        margin-bottom: 10px;
+    }
+
+    .home__close {
+        width: 35px;
+        height: 35px;
+    }
+
+    .home__close img {
+        width: 20px;
+        height: 20px;
+    }
 }
 
 @media screen and (max-width: 768px) {

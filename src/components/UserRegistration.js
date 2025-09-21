@@ -12,6 +12,7 @@ const UserRegistration = ({ onClose, walletAddress }) => {
     userType: 'buyer', // buyer, seller, agent, investor, inspector
     bio: '',
     location: '',
+    profilePicture: '',
     preferences: {
       emailNotifications: true,
       smsNotifications: false,
@@ -41,6 +42,40 @@ const UserRegistration = ({ onClose, walletAddress }) => {
         [name]: type === 'checkbox' ? checked : value
       }));
     }
+  };
+
+  const handleProfilePictureChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Check file size (limit to 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Profile picture must be less than 5MB');
+        return;
+      }
+
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        setError('Please select a valid image file');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({
+          ...prev,
+          profilePicture: reader.result
+        }));
+        setError(''); // Clear any previous errors
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeProfilePicture = () => {
+    setFormData(prev => ({
+      ...prev,
+      profilePicture: ''
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -164,6 +199,42 @@ const UserRegistration = ({ onClose, walletAddress }) => {
                     onChange={handleInputChange}
                     required
                   />
+                </div>
+              </div>
+
+              <div className="form-group profile-picture-section">
+                <label>Profile Picture (Optional)</label>
+                <div className="profile-picture-upload">
+                  {formData.profilePicture ? (
+                    <div className="profile-preview">
+                      <img src={formData.profilePicture} alt="Profile Preview" />
+                      <button 
+                        type="button" 
+                        className="remove-picture-btn"
+                        onClick={removeProfilePicture}
+                        title="Remove Picture"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="profile-placeholder">
+                      <span>{formData.firstName?.charAt(0)}{formData.lastName?.charAt(0)}</span>
+                    </div>
+                  )}
+                  <div className="upload-controls">
+                    <input
+                      type="file"
+                      id="profilePicture"
+                      accept="image/*"
+                      onChange={handleProfilePictureChange}
+                      style={{ display: 'none' }}
+                    />
+                    <label htmlFor="profilePicture" className="upload-btn">
+                      Choose Picture
+                    </label>
+                    <p className="upload-hint">JPG, PNG or GIF (max 5MB)</p>
+                  </div>
                 </div>
               </div>
 

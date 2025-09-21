@@ -12,7 +12,7 @@ import Escrow from '../abis/Escrow.json';
 import config from '../config.json';
 
 const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
-  const { user, isAuthenticated, loginUser, checkUserExists } = useUser();
+  const { user, isAuthenticated, loginUser, logoutUser, checkUserExists } = useUser();
   const [showRegistration, setShowRegistration] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -58,6 +58,56 @@ const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
   useEffect(() => {
     checkInspectorStatus();
   }, [checkInspectorStatus]);
+
+  // Listen for wallet account changes
+  useEffect(() => {
+    if (window.ethereum) {
+      const handleAccountsChanged = async (accounts) => {
+        if (accounts.length === 0) {
+          // User disconnected their wallet
+          setAccount(null);
+          logoutUser(); // Clear current user session
+          setAuthError('');
+        } else {
+          const newWalletAddress = accounts[0];
+          if (newWalletAddress !== account) {
+            // Wallet account changed - logout current user first
+            if (isAuthenticated) {
+              logoutUser(); // Clear previous user session
+            }
+            
+            setAccount(newWalletAddress);
+            
+            // Check if the new wallet has a registered user
+            if (checkUserExists(newWalletAddress)) {
+              try {
+                await loginUser(newWalletAddress);
+                setAuthError('');
+                console.log('Auto-logged in with new wallet:', newWalletAddress);
+              } catch (error) {
+                setAuthError('Failed to authenticate with new wallet');
+                console.error('Auto-login failed:', error);
+              }
+            } else {
+              // New wallet doesn't have a registered user
+              setAuthError('');
+              setShowRegistration(true);
+              console.log('New wallet detected, showing registration:', newWalletAddress);
+            }
+          }
+        }
+      };
+
+      window.ethereum.on('accountsChanged', handleAccountsChanged);
+
+      // Cleanup listener on component unmount
+      return () => {
+        if (window.ethereum.removeListener) {
+          window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        }
+      };
+    }
+  }, [account, checkUserExists, loginUser, logoutUser, isAuthenticated]);
 
   // Close mobile menu when clicking outside
   useEffect(() => {
@@ -128,15 +178,6 @@ const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
               <li>
                 <button 
                   type="button" 
-                  className={`nav__link ${currentPage === 'home' ? 'nav__link--active' : ''}`}
-                  onClick={() => handleNavigation('home')}
-                >
-                  Home
-                </button>
-              </li>
-              <li>
-                <button 
-                  type="button" 
                   className={`nav__link ${currentPage === 'properties' ? 'nav__link--active' : ''}`}
                   onClick={() => handleNavigation('properties')}
                 >
@@ -144,7 +185,6 @@ const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
                 </button>
               </li>
               <li><button type="button" className="nav__link">Rent</button></li>
-              <li><button type="button" className="nav__link">Sell</button></li>
               <li>
                 <button 
                   type="button" 
@@ -167,12 +207,13 @@ const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
                 <div className="user-menu">
                   {isAuthenticated && user && (
                     <div className="user-info">
-                      <div className="user-avatar" onClick={handleProfileClick}>
-                        {user.firstName?.charAt(0)}{user.lastName?.charAt(0)}
+                      <div className={`user-avatar ${user.profilePicture ? 'profile-image' : ''}`} onClick={handleProfileClick}>
+                        {user.profilePicture ? (
+                          <img src={user.profilePicture} alt="Profile" />
+                        ) : (
+                          `${user.firstName?.charAt(0)}${user.lastName?.charAt(0)}`
+                        )}
                       </div>
-                      <span className="user-name" onClick={handleProfileClick}>
-                        {user.firstName}
-                      </span>
                     </div>
                   )}
                   
@@ -253,6 +294,7 @@ const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
       {showProfile && (
         <UserProfile 
           onClose={() => setShowProfile(false)}
+          onNavigateHome={() => handleNavigation('home')}
         />
       )}
 

@@ -168,11 +168,16 @@ export const UserProvider = ({ children }) => {
   };
 
   // Logout user
-  const logoutUser = () => {
+  const logoutUser = (onLogoutCallback) => {
     setUser(null);
     setAccount(null);
     setIsAuthenticated(false);
     // Don't remove from localStorage, just clear session
+    
+    // Execute callback if provided (for navigation)
+    if (onLogoutCallback && typeof onLogoutCallback === 'function') {
+      onLogoutCallback();
+    }
   };
 
   // Update user profile
