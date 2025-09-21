@@ -981,6 +981,32 @@ body {
     transform: scale(1.1);
 }
 
+/* Inspector-specific styling */
+.nav__quick-action.inspector-action {
+    background: linear-gradient(135deg, #e6fffa, #b2f5ea);
+    color: #38a169;
+    border: 1px solid #68d391;
+    position: relative;
+}
+
+.nav__quick-action.inspector-action:hover {
+    background: linear-gradient(135deg, #b2f5ea, #9ae6b4);
+    color: #2f855a;
+    border-color: #48bb78;
+}
+
+.nav__quick-action.inspector-action::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    background: #38a169;
+    border-radius: 50%;
+    border: 2px solid white;
+}
+
 .nav__settings {
     order: 999; /* Always place settings last */
     flex-shrink: 0; /* Prevent shrinking */
@@ -1707,6 +1733,26 @@ nav {
     background: var(--clr-orange-translucent);
     color: var(--clr-orange);
 }
+
+/* Dark theme inspector action button */
+:root.dark-theme .nav__quick-action.inspector-action {
+    background: linear-gradient(135deg, #1a2e1a, #2d4a2d);
+    color: #68d391;
+    border-color: #48bb78;
+}
+
+:root.dark-theme .nav__quick-action.inspector-action:hover {
+    background: linear-gradient(135deg, #2d4a2d, #3d5a3d);
+    color: #9ae6b4;
+    border-color: #68d391;
+}
+
+:root.dark-theme .nav__quick-action.inspector-action::after {
+    background: #68d391;
+    border-color: #2d3748;
+}
+
+
 
 .nav__connect {
     width: 175px;

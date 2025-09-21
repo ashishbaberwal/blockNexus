@@ -1,11 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { ethers } from 'ethers';
 import logo from '../assets/logo.svg';
 import { useUser } from '../contexts/UserContext';
-import { useTheme } from '../contexts/ThemeContext';
 import UserRegistration from './UserRegistration';
 import UserProfile from './UserProfile';
 import Settings from './Settings';
 import NotificationSystem from './NotificationSystem';
+
+// Import contract ABIs and config
+import Escrow from '../abis/Escrow.json';
+import config from '../config.json';
 
 const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
   const { user, isAuthenticated, loginUser, checkUserExists } = useUser();
@@ -14,6 +18,46 @@ const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
   const [showSettings, setShowSettings] = useState(false);
   const [authError, setAuthError] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [inspector, setInspector] = useState(null);
+  const [isInspector, setIsInspector] = useState(false);
+
+  const loadInspectorAddress = async () => {
+    try {
+      if (window.ethereum) {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const network = await provider.getNetwork();
+        const escrowContract = new ethers.Contract(
+          config[network.chainId].escrow.address, 
+          Escrow, 
+          provider
+        );
+        
+        const inspectorAddress = await escrowContract.inspector();
+        setInspector(inspectorAddress);
+      }
+    } catch (error) {
+      console.error('Error loading inspector address:', error);
+    }
+  };
+
+  const checkInspectorStatus = useCallback(() => {
+    if (account && inspector) {
+      const isInspectorWallet = account.toLowerCase() === inspector.toLowerCase();
+      setIsInspector(isInspectorWallet);
+    } else {
+      setIsInspector(false);
+    }
+  }, [account, inspector]);
+
+  // Load inspector address from contract
+  useEffect(() => {
+    loadInspectorAddress();
+  }, []);
+
+  // Check if current account is inspector
+  useEffect(() => {
+    checkInspectorStatus();
+  }, [checkInspectorStatus]);
 
   // Close mobile menu when clicking outside
   useEffect(() => {
@@ -164,6 +208,18 @@ const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
                   title="My Properties"
                 >
                   🏠
+                </button>
+              )}
+              
+              {/* Property Approval Admin - only visible when inspector wallet is connected */}
+              {account && isInspector && (
+                <button
+                  type="button"
+                  className="nav__quick-action inspector-action"
+                  onClick={() => handleNavigation('property-approval')}
+                  title="Property Approval Management"
+                >
+                  ✅
                 </button>
               )}
               

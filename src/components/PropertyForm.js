@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { propertyTypes, getDefaultProperty, validateProperty } from '../services/propertyStorage';
+import { propertyTypes, useStatusOptions, getDefaultProperty, validateProperty } from '../services/propertyStorage';
 import './PropertyForm.css';
 
 const PropertyForm = ({ property, onSave, onCancel }) => {
@@ -7,11 +7,16 @@ const PropertyForm = ({ property, onSave, onCancel }) => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 3;
+  const totalSteps = 4; // Further simplified without media uploads
 
   useEffect(() => {
     if (property) {
-      setFormData({ ...getDefaultProperty(), ...property });
+      const propertyData = { ...getDefaultProperty(), ...property };
+      // If property has image data, set it as preview
+      if (property.propertyImageData) {
+        propertyData.propertyImagePreview = property.propertyImageData;
+      }
+      setFormData(propertyData);
     }
   }, [property]);
 
@@ -34,7 +39,15 @@ const PropertyForm = ({ property, onSave, onCancel }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    const validation = validateProperty(formData);
+    // Only allow submission on the final step
+    if (currentStep !== totalSteps) {
+      return;
+    }
+    
+    // Add current step to form data for validation
+    const formDataWithStep = { ...formData, currentStep };
+    
+    const validation = validateProperty(formDataWithStep);
     if (!validation.isValid) {
       setErrors(validation.errors);
       return;
@@ -42,16 +55,140 @@ const PropertyForm = ({ property, onSave, onCancel }) => {
 
     setIsSubmitting(true);
     try {
-      await onSave(formData);
+      // Prepare form data for saving - simplified approach
+      const propertyData = { ...formData };
+      
+      // Ensure backward compatibility with old field names
+      if (!propertyData.propertyNumber && propertyData.propertyTitle) {
+        propertyData.propertyNumber = propertyData.propertyTitle;
+      }
+      if (!propertyData.location && propertyData.fullAddress) {
+        propertyData.location = propertyData.fullAddress;
+      }
+      if (!propertyData.landArea && propertyData.propertySize) {
+        propertyData.landArea = propertyData.propertySize;
+      }
+      if (!propertyData.district && propertyData.state) {
+        propertyData.district = propertyData.state;
+      }
+      
+      // Handle single property image upload
+      if (formData.propertyImage && formData.propertyImage instanceof File) {
+        // Compress the image before storing
+        propertyData.propertyImageData = await compressImage(formData.propertyImagePreview, 0.7); // 70% quality
+        propertyData.propertyImageName = formData.propertyImage.name;
+        propertyData.propertyImageSize = formData.propertyImage.size;
+        propertyData.propertyImageType = formData.propertyImage.type;
+        delete propertyData.propertyImage;
+      }
+      
+      // Clean up any File objects that can't be serialized
+      Object.keys(propertyData).forEach(key => {
+        if (propertyData[key] instanceof File) {
+          delete propertyData[key];
+        }
+        if (propertyData[key] && typeof propertyData[key] === 'object') {
+          // Check for nested File objects
+          Object.keys(propertyData[key]).forEach(nestedKey => {
+            if (propertyData[key][nestedKey] instanceof File) {
+              delete propertyData[key][nestedKey];
+            }
+          });
+        }
+      });
+      
+      // Set submission metadata
+      propertyData.submissionStep = totalSteps;
+      propertyData.submittedAt = new Date().toISOString();
+      
+      await onSave(propertyData);
     } catch (error) {
       console.error('Error saving property:', error);
-      alert('Failed to save property. Please try again.');
+      let errorMessage = 'Failed to save property. Please try again.';
+      
+      if (error.message) {
+        if (error.message.includes('quota') || error.message.includes('storage')) {
+          errorMessage = 'Storage limit reached. Try removing the image or clearing old properties from your browser.';
+        } else {
+          errorMessage = `Failed to save property: ${error.message}`;
+        }
+      }
+      
+      alert(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const validateCurrentStep = () => {
+    const errors = {};
+    
+    switch (currentStep) {
+      case 1:
+        if (!formData.propertyTitle?.trim()) {
+          errors.propertyTitle = 'Property title is required';
+        }
+        if (!formData.fullAddress?.trim()) {
+          errors.fullAddress = 'Full address is required';
+        }
+        if (!formData.city?.trim()) {
+          errors.city = 'City is required';
+        }
+        if (!formData.state?.trim()) {
+          errors.state = 'State is required';
+        }
+        if (!formData.pinCode?.trim()) {
+          errors.pinCode = 'PIN code is required';
+        } else if (!/^\d{6}$/.test(formData.pinCode.trim())) {
+          errors.pinCode = 'PIN code must be 6 digits';
+        }
+        if (!formData.type?.trim()) {
+          errors.type = 'Property type is required';
+        }
+        if (!formData.propertySize?.trim()) {
+          errors.propertySize = 'Property size is required';
+        }
+        if (!formData.currentUseStatus?.trim()) {
+          errors.currentUseStatus = 'Current use status is required';
+        }
+        break;
+        
+      case 2:
+        // Advanced verification - no mandatory fields, but can add warnings
+        break;
+        
+      case 3:
+        // Community & trust - no mandatory fields
+        break;
+        
+      case 4:
+        // Final validation
+        if (!formData.agreeToTerms) {
+          errors.agreeToTerms = 'You must agree to the terms and conditions';
+        }
+        if (!formData.consentToVerification) {
+          errors.consentToVerification = 'You must consent to verification processes';
+        }
+        break;
+    }
+    
+    return {
+      isValid: Object.keys(errors).length === 0,
+      errors
+    };
+  };
+
   const nextStep = () => {
+    // Validate current step before proceeding
+    const stepValidation = validateCurrentStep();
+    if (!stepValidation.isValid) {
+      setErrors(stepValidation.errors);
+      return;
+    }
+    
+    // Clear errors if validation passes
+    setErrors({});
+    
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     }
@@ -63,77 +200,179 @@ const PropertyForm = ({ property, onSave, onCancel }) => {
     }
   };
 
+  const getStepTitle = (stepNumber) => {
+    const titles = {
+      1: 'Core Property Details',
+      2: 'Advanced Verification',
+      3: 'Community & Trust',
+      4: 'Review & Submit'
+    };
+    return titles[stepNumber] || `Step ${stepNumber}`;
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        setErrors(prev => ({
+          ...prev,
+          propertyImage: 'Please select a valid image file (JPEG, PNG, or WebP)'
+        }));
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors(prev => ({
+          ...prev,
+          propertyImage: 'Image size should be less than 5MB'
+        }));
+        return;
+      }
+
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setFormData(prev => ({
+          ...prev,
+          propertyImage: file,
+          propertyImagePreview: e.target.result
+        }));
+      };
+      reader.readAsDataURL(file);
+
+      // Clear any existing errors
+      if (errors.propertyImage) {
+        setErrors(prev => ({
+          ...prev,
+          propertyImage: ''
+        }));
+      }
+    }
+  };
+
+  const removeImage = () => {
+    setFormData(prev => ({
+      ...prev,
+      propertyImage: null,
+      propertyImagePreview: null
+    }));
+  };
+
+  const handleNestedInputChange = (e) => {
+    const { name, value } = e.target;
+    const keys = name.split('.');
+    
+    setFormData(prev => {
+      const newData = { ...prev };
+      let current = newData;
+      
+      for (let i = 0; i < keys.length - 1; i++) {
+        if (!current[keys[i]]) current[keys[i]] = {};
+        current = current[keys[i]];
+      }
+      
+      current[keys[keys.length - 1]] = value;
+      return newData;
+    });
+  };
+
+  const getCurrentLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setFormData(prev => ({
+            ...prev,
+            gpsCoordinates: {
+              latitude: position.coords.latitude.toString(),
+              longitude: position.coords.longitude.toString()
+            }
+          }));
+        },
+        (error) => {
+          alert('Unable to get location. Please enter coordinates manually.');
+        }
+      );
+    } else {
+      alert('Geolocation is not supported by this browser.');
+    }
+  };
+
+  // Image compression function to reduce storage size
+  const compressImage = (base64String, quality = 0.3) => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        // Calculate new dimensions (max 800px width)
+        const maxWidth = 800;
+        const maxHeight = 600;
+        let { width, height } = img;
+        
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+        if (height > maxHeight) {
+          width = (width * maxHeight) / height;
+          height = maxHeight;
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        // Draw and compress
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressedBase64);
+      };
+      
+      img.src = base64String;
+    });
+  };
+
+
+
+
+
+  // Step 1: Core Property Details
   const renderStep1 = () => (
     <div className="form-step">
-      <h3>Basic Property Information</h3>
+      <h3>🏠 Core Property Details</h3>
+      <p className="step-description">Provide structured information about your property</p>
       
       <div className="form-group">
-        <label htmlFor="propertyNumber">Property/Survey Number *</label>
+        <label htmlFor="propertyTitle">Property Title/Name *</label>
         <input
           type="text"
-          id="propertyNumber"
-          name="propertyNumber"
-          value={formData.propertyNumber}
+          id="propertyTitle"
+          name="propertyTitle"
+          value={formData.propertyTitle}
           onChange={handleInputChange}
-          className={errors.propertyNumber ? 'error' : ''}
-          placeholder="Enter unique property/survey number"
+          className={errors.propertyTitle ? 'error' : ''}
+          placeholder="e.g., Sunrise Apartments, Green Villa, Commercial Complex"
         />
-        {errors.propertyNumber && <span className="error-message">{errors.propertyNumber}</span>}
+        {errors.propertyTitle && <span className="error-message">{errors.propertyTitle}</span>}
       </div>
 
       <div className="form-group">
-        <label htmlFor="type">Type of Property *</label>
-        <select
-          id="type"
-          name="type"
-          value={formData.type}
-          onChange={handleInputChange}
-          className={errors.type ? 'error' : ''}
-        >
-          <option value="">Select property type</option>
-          {propertyTypes.map(type => (
-            <option key={type.value} value={type.value}>
-              {type.label}
-            </option>
-          ))}
-        </select>
-        {errors.type && <span className="error-message">{errors.type}</span>}
-      </div>
-
-      <div className="form-group">
-        <label htmlFor="landArea">Land Area/Dimensions *</label>
-        <input
-          type="text"
-          id="landArea"
-          name="landArea"
-          value={formData.landArea}
-          onChange={handleInputChange}
-          className={errors.landArea ? 'error' : ''}
-          placeholder="e.g., 1000 sq ft, 2 acres, 50x30 meters"
-        />
-        {errors.landArea && <span className="error-message">{errors.landArea}</span>}
-      </div>
-
-      <div className="form-group">
-        <label htmlFor="location">Complete Address *</label>
+        <label htmlFor="fullAddress">Full Address *</label>
         <textarea
-          id="location"
-          name="location"
-          value={formData.location}
+          id="fullAddress"
+          name="fullAddress"
+          value={formData.fullAddress}
           onChange={handleInputChange}
-          className={errors.location ? 'error' : ''}
-          placeholder="Enter complete address including street, area, etc."
+          className={errors.fullAddress ? 'error' : ''}
+          placeholder="Complete address including building name, street, area"
           rows="3"
         />
-        {errors.location && <span className="error-message">{errors.location}</span>}
+        {errors.fullAddress && <span className="error-message">{errors.fullAddress}</span>}
       </div>
-    </div>
-  );
 
-  const renderStep2 = () => (
-    <div className="form-step">
-      <h3>Location Details</h3>
-      
       <div className="form-row">
         <div className="form-group">
           <label htmlFor="city">City *</label>
@@ -150,101 +389,415 @@ const PropertyForm = ({ property, onSave, onCancel }) => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="district">District *</label>
+          <label htmlFor="state">State *</label>
           <input
             type="text"
-            id="district"
-            name="district"
-            value={formData.district}
+            id="state"
+            name="state"
+            value={formData.state}
             onChange={handleInputChange}
-            className={errors.district ? 'error' : ''}
-            placeholder="Enter district name"
+            className={errors.state ? 'error' : ''}
+            placeholder="Enter state name"
           />
-          {errors.district && <span className="error-message">{errors.district}</span>}
+          {errors.state && <span className="error-message">{errors.state}</span>}
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="pinCode">PIN Code *</label>
+          <input
+            type="text"
+            id="pinCode"
+            name="pinCode"
+            value={formData.pinCode}
+            onChange={handleInputChange}
+            className={errors.pinCode ? 'error' : ''}
+            placeholder="6-digit PIN code"
+            maxLength="6"
+          />
+          {errors.pinCode && <span className="error-message">{errors.pinCode}</span>}
         </div>
       </div>
 
       <div className="form-group">
-        <label htmlFor="geoCoordinates">Geo Coordinates (Optional)</label>
+        <label htmlFor="locality">Area/Locality Name</label>
         <input
           type="text"
-          id="geoCoordinates"
-          name="geoCoordinates"
-          value={formData.geoCoordinates}
+          id="locality"
+          name="locality"
+          value={formData.locality}
           onChange={handleInputChange}
-          placeholder="e.g., 12.9716° N, 77.5946° E"
+          placeholder="e.g., Koramangala, Bandra West, Sector 18"
         />
-        <small className="help-text">Enter latitude and longitude if available</small>
+      </div>
+
+      <div className="form-group">
+        <label>GPS Coordinates</label>
+        <div className="gps-container">
+          <div className="form-row">
+            <div className="form-group">
+              <input
+                type="text"
+                name="gpsCoordinates.latitude"
+                value={formData.gpsCoordinates?.latitude || ''}
+                onChange={handleNestedInputChange}
+                placeholder="Latitude (e.g., 12.9716)"
+              />
+            </div>
+            <div className="form-group">
+              <input
+                type="text"
+                name="gpsCoordinates.longitude"
+                value={formData.gpsCoordinates?.longitude || ''}
+                onChange={handleNestedInputChange}
+                placeholder="Longitude (e.g., 77.5946)"
+              />
+            </div>
+          </div>
+          <button type="button" className="btn btn--outline" onClick={getCurrentLocation}>
+            📍 Get Current Location
+          </button>
+        </div>
+      </div>
+
+      <div className="form-row">
+        <div className="form-group">
+          <label htmlFor="type">Property Type *</label>
+          <select
+            id="type"
+            name="type"
+            value={formData.type}
+            onChange={handleInputChange}
+            className={errors.type ? 'error' : ''}
+          >
+            <option value="">Select property type</option>
+            {propertyTypes.map(type => (
+              <option key={type.value} value={type.value}>
+                {type.label}
+              </option>
+            ))}
+          </select>
+          {errors.type && <span className="error-message">{errors.type}</span>}
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="currentUseStatus">Current Use Status *</label>
+          <select
+            id="currentUseStatus"
+            name="currentUseStatus"
+            value={formData.currentUseStatus}
+            onChange={handleInputChange}
+            className={errors.currentUseStatus ? 'error' : ''}
+          >
+            <option value="">Select status</option>
+            {useStatusOptions.map(status => (
+              <option key={status.value} value={status.value}>
+                {status.label}
+              </option>
+            ))}
+          </select>
+          {errors.currentUseStatus && <span className="error-message">{errors.currentUseStatus}</span>}
+        </div>
+      </div>
+
+      <div className="form-row">
+        <div className="form-group">
+          <label htmlFor="propertySize">Property Size/Area *</label>
+          <input
+            type="text"
+            id="propertySize"
+            name="propertySize"
+            value={formData.propertySize}
+            onChange={handleInputChange}
+            className={errors.propertySize ? 'error' : ''}
+            placeholder="e.g., 1200 sqft, 2.5 acres"
+          />
+          {errors.propertySize && <span className="error-message">{errors.propertySize}</span>}
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="surveyNumber">Survey/Plot Number</label>
+          <input
+            type="text"
+            id="surveyNumber"
+            name="surveyNumber"
+            value={formData.surveyNumber}
+            onChange={handleInputChange}
+            placeholder="Survey or plot number if available"
+          />
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="propertyImage">Property Image</label>
+        <input
+          type="file"
+          id="propertyImage"
+          name="propertyImage"
+          accept="image/*"
+          onChange={handleImageChange}
+          className={errors.propertyImage ? 'error' : ''}
+        />
+        {errors.propertyImage && <span className="error-message">{errors.propertyImage}</span>}
+        
+        {formData.propertyImagePreview && (
+          <div className="image-preview">
+            <img 
+              src={formData.propertyImagePreview} 
+              alt="Property preview" 
+              style={{ maxWidth: '200px', maxHeight: '150px', objectFit: 'cover', marginTop: '10px' }}
+            />
+            <button 
+              type="button" 
+              onClick={removeImage}
+              className="btn btn--outline btn--small"
+              style={{ marginTop: '5px' }}
+            >
+              Remove Image
+            </button>
+          </div>
+        )}
+        <small className="help-text">Upload a photo of your property (JPEG, PNG, or WebP, max 5MB)</small>
       </div>
     </div>
   );
 
-  const renderStep3 = () => (
+
+
+
+
+  // Step 4: Advanced Verification
+  const renderStep4 = () => (
     <div className="form-step">
-      <h3>Legal Documents & Information</h3>
+      <h3>🔍 Advanced Verification</h3>
+      <p className="step-description">Enhanced verification for maximum authenticity</p>
       
-      <div className="form-group">
-        <label htmlFor="ownershipTitle">Ownership Title (Record of Rights)</label>
-        <textarea
-          id="ownershipTitle"
-          name="ownershipTitle"
-          value={formData.ownershipTitle}
-          onChange={handleInputChange}
-          placeholder="Enter details of ownership title or mutation extract"
-          rows="3"
-        />
-        <small className="help-text">Latest Record of Rights (RoR) or mutation extract verifying ownership</small>
+      <div className="verification-options">
+        <div className="verification-card">
+          <h4>🏠 Inspector Verification</h4>
+          <p>Arrange for a certified inspector to visit and verify your property</p>
+          <div className="form-group">
+            <label>
+              <input
+                type="checkbox"
+                name="requestInspection"
+                checked={formData.requestInspection || false}
+                onChange={(e) => setFormData(prev => ({
+                  ...prev,
+                  requestInspection: e.target.checked
+                }))}
+              />
+              Request Inspector Visit
+            </label>
+            <small className="help-text">Inspector will verify property details and upload their report</small>
+          </div>
+        </div>
+
+        <div className="verification-card">
+          <h4>🌍 Geo-Verification</h4>
+          <p>Cross-check location with device GPS and map services</p>
+          <div className="geo-status">
+            {formData.gpsCoordinates?.latitude && formData.gpsCoordinates?.longitude ? (
+              <span className="status-success">✅ GPS coordinates provided</span>
+            ) : (
+              <span className="status-warning">⚠️ GPS coordinates recommended</span>
+            )}
+          </div>
+        </div>
+
+        <div className="verification-card">
+          <h4>⛓️ Blockchain Security</h4>
+          <p>All documents and media will be hashed and stored on blockchain</p>
+          <div className="blockchain-info">
+            <span className="status-info">🔗 Automatic blockchain hash generation</span>
+            <small>SHA-256 hashes will be generated for all uploaded content</small>
+          </div>
+        </div>
       </div>
 
       <div className="form-group">
-        <label htmlFor="encumbranceCertificate">Encumbrance Certificate</label>
-        <textarea
-          id="encumbranceCertificate"
-          name="encumbranceCertificate"
-          value={formData.encumbranceCertificate}
-          onChange={handleInputChange}
-          placeholder="Enter encumbrance certificate details"
-          rows="3"
-        />
-        <small className="help-text">Confirms the property is free from any legal dues, mortgages, loans, or claims</small>
-      </div>
-
-      <div className="form-group">
-        <label htmlFor="governmentApprovals">Government Approvals</label>
-        <textarea
-          id="governmentApprovals"
-          name="governmentApprovals"
-          value={formData.governmentApprovals}
-          onChange={handleInputChange}
-          placeholder="Enter government approvals and permissions"
-          rows="3"
-        />
-        <small className="help-text">Zoning, land-use certificate, planning permissions (if any)</small>
-      </div>
-
-      <div className="form-group">
-        <label htmlFor="litigationStatus">Litigation Status</label>
-        <textarea
-          id="litigationStatus"
-          name="litigationStatus"
-          value={formData.litigationStatus}
-          onChange={handleInputChange}
-          placeholder="Enter litigation status details"
-          rows="3"
-        />
-        <small className="help-text">Proof that property is not under dispute</small>
-      </div>
-
-      <div className="form-group">
-        <label htmlFor="additionalNotes">Additional Notes</label>
+        <label htmlFor="additionalNotes">Additional Verification Notes</label>
         <textarea
           id="additionalNotes"
           name="additionalNotes"
           value={formData.additionalNotes}
           onChange={handleInputChange}
-          placeholder="Any additional information about the property"
-          rows="3"
+          placeholder="Any additional information for verification team"
+          rows="4"
         />
+      </div>
+    </div>
+  );
+
+  // Step 5: Community & Trust Layers
+  const renderStep5 = () => (
+    <div className="form-step">
+      <h3>🤝 Community & Trust Layers</h3>
+      <p className="step-description">Build trust through community verification</p>
+      
+      <div className="trust-section">
+        <div className="trust-card">
+          <h4>👥 Peer Review System</h4>
+          <p>Allow community members to verify your property listing</p>
+          <div className="form-group">
+            <label>
+              <input
+                type="checkbox"
+                name="enablePeerReview"
+                checked={formData.enablePeerReview || false}
+                onChange={(e) => setFormData(prev => ({
+                  ...prev,
+                  enablePeerReview: e.target.checked
+                }))}
+              />
+              Enable Community Verification
+            </label>
+            <small className="help-text">Neighbors and local community can confirm property existence</small>
+          </div>
+        </div>
+
+        <div className="trust-card">
+          <h4>⭐ Reputation System</h4>
+          <p>Your seller reputation based on previous transactions</p>
+          <div className="reputation-display">
+            <div className="reputation-score">
+              <span className="score">{formData.sellerReputation || 0}</span>
+              <span className="label">Reputation Points</span>
+            </div>
+            <small>Build reputation through verified, successful transactions</small>
+          </div>
+        </div>
+
+        <div className="trust-card">
+          <h4>🏆 Verification Badges</h4>
+          <p>Earn badges for different verification levels</p>
+          <div className="badge-preview">
+            <span className="badge">📋 Document Verified</span>
+            <span className="badge">🏠 Inspector Verified</span>
+            <span className="badge">👥 Community Verified</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="sellerStatement">Seller Statement</label>
+        <textarea
+          id="sellerStatement"
+          name="sellerStatement"
+          value={formData.sellerStatement}
+          onChange={handleInputChange}
+          placeholder="Brief statement about the property and your commitment to transparency"
+          rows="4"
+        />
+        <small className="help-text">This statement will be visible to potential buyers</small>
+      </div>
+    </div>
+  );
+
+  // Step 5: Review & Submit (was Step 6, now Step 5 after removing documents)
+  const renderStep6 = () => (
+    <div className="form-step">
+      <h3>📋 Review & Submit</h3>
+      <p className="step-description">Review all information before submitting for approval</p>
+      
+      <div className="review-summary">
+        <div className="summary-section">
+          <h4>Property Details</h4>
+          <div className="summary-item">
+            <strong>Title:</strong> {formData.propertyTitle}
+          </div>
+          <div className="summary-item">
+            <strong>Address:</strong> {formData.fullAddress}
+          </div>
+          <div className="summary-item">
+            <strong>Type:</strong> {propertyTypes.find(t => t.value === formData.type)?.label}
+          </div>
+          <div className="summary-item">
+            <strong>Size:</strong> {formData.propertySize}
+          </div>
+        </div>
+
+
+
+        <div className="summary-section">
+          <h4>Property Image</h4>
+          <div className="summary-item">
+            {formData.propertyImagePreview ? (
+              <div>
+                <span className="status-success">✅ Property image uploaded</span>
+                <div style={{ marginTop: '10px' }}>
+                  <img 
+                    src={formData.propertyImagePreview} 
+                    alt="Property preview" 
+                    style={{ maxWidth: '150px', maxHeight: '100px', objectFit: 'cover' }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <span className="status-info">📷 No image uploaded</span>
+            )}
+          </div>
+        </div>
+
+        <div className="summary-section">
+          <h4>Verification Level</h4>
+          <div className="verification-level">
+            <span className="level-badge">📋 Document Verification</span>
+            {formData.requestInspection && (
+              <span className="level-badge">🏠 Inspector Verification Requested</span>
+            )}
+            {formData.enablePeerReview && (
+              <span className="level-badge">👥 Community Verification Enabled</span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="submission-agreement">
+        <div className="form-group">
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              name="agreeToTerms"
+              checked={formData.agreeToTerms || false}
+              onChange={(e) => setFormData(prev => ({
+                ...prev,
+                agreeToTerms: e.target.checked
+              }))}
+              required
+            />
+            I confirm that all information provided is accurate and I agree to the terms and conditions
+          </label>
+          {errors.agreeToTerms && <span className="error-message">{errors.agreeToTerms}</span>}
+        </div>
+
+        <div className="form-group">
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              name="consentToVerification"
+              checked={formData.consentToVerification || false}
+              onChange={(e) => setFormData(prev => ({
+                ...prev,
+                consentToVerification: e.target.checked
+              }))}
+              required
+            />
+            I consent to property verification processes including inspector visits and community reviews
+          </label>
+          {errors.consentToVerification && <span className="error-message">{errors.consentToVerification}</span>}
+        </div>
+      </div>
+
+      <div className="submission-info">
+        <h4>🚀 What happens next?</h4>
+        <ol>
+          <li>Your property will be submitted for approval</li>
+          <li>Our team will verify the property information and media</li>
+          <li>Inspector visit will be scheduled (if requested)</li>
+          <li>Community verification will be enabled</li>
+          <li>You'll receive approval notification</li>
+          <li>Property will be listed on the platform</li>
+        </ol>
       </div>
     </div>
   );
@@ -253,7 +806,12 @@ const PropertyForm = ({ property, onSave, onCancel }) => {
     <div className="property-form-container">
       <div className="form-header">
         <h2>{property ? 'Edit Property' : 'Add New Property'}</h2>
-        <p>Complete all required information to add your property to the system</p>
+        <p>
+          {property 
+            ? 'Update your property information' 
+            : 'Complete all required information to submit your property for approval'
+          }
+        </p>
       </div>
 
       <div className="form-progress">
@@ -264,21 +822,29 @@ const PropertyForm = ({ property, onSave, onCancel }) => {
           ></div>
         </div>
         <div className="progress-steps">
-          {Array.from({ length: totalSteps }, (_, i) => (
-            <div 
-              key={i + 1} 
-              className={`step ${i + 1 <= currentStep ? 'active' : ''}`}
-            >
-              {i + 1}
-            </div>
-          ))}
+          {Array.from({ length: totalSteps }, (_, i) => {
+            const stepNumber = i + 1;
+            const isActive = stepNumber <= currentStep;
+            const isCurrent = stepNumber === currentStep;
+            
+            return (
+              <div 
+                key={stepNumber} 
+                className={`step ${isActive ? 'active' : ''} ${isCurrent ? 'current' : ''}`}
+                title={getStepTitle(stepNumber)}
+              >
+                {stepNumber}
+              </div>
+            );
+          })}
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="property-form">
         {currentStep === 1 && renderStep1()}
-        {currentStep === 2 && renderStep2()}
-        {currentStep === 3 && renderStep3()}
+        {currentStep === 2 && renderStep4()}
+        {currentStep === 3 && renderStep5()}
+        {currentStep === 4 && renderStep6()}
 
         <div className="form-actions">
           <div className="form-navigation">
@@ -306,7 +872,7 @@ const PropertyForm = ({ property, onSave, onCancel }) => {
                 disabled={isSubmitting}
                 className="btn btn--primary"
               >
-                {isSubmitting ? 'Saving...' : (property ? 'Update Property' : 'Save Property')}
+                {isSubmitting ? 'Submitting...' : (property ? 'Update Property' : 'Submit for Approval')}
               </button>
             )}
           </div>
