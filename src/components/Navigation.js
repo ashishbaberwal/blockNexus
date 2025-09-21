@@ -8,7 +8,7 @@ import Settings from './Settings';
 import NotificationSystem from './NotificationSystem';
 
 const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
-  const { user, isAuthenticated, loginUser, checkUserExists } = useUser();
+  const { user, isAuthenticated, loginUser, checkUserExists, userRole } = useUser();
   const [showRegistration, setShowRegistration] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -110,6 +110,28 @@ const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
                   About
                 </button>
               </li>
+              {account && isAuthenticated && userRole === 'inspector' && (
+                <>
+                  <li>
+                    <button 
+                      type="button" 
+                      className={`nav__link ${currentPage === 'inspector' ? 'nav__link--active' : ''}`}
+                      onClick={() => handleNavigation('inspector')}
+                    >
+                      Inspector
+                    </button>
+                  </li>
+                  <li>
+                    <button 
+                      type="button" 
+                      className={`nav__link ${currentPage === 'approve' ? 'nav__link--active' : ''}`}
+                      onClick={() => handleNavigation('approve')}
+                    >
+                      Approve
+                    </button>
+                  </li>
+                </>
+              )}
           </ul>
 
           <div className='nav__brand' onClick={() => handleNavigation('home')}>

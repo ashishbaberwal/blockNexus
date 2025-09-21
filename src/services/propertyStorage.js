@@ -104,6 +104,59 @@ export const propertyStorage = {
       lastUpdated: properties.length > 0 ? 
         Math.max(...properties.map(p => new Date(p.updatedAt).getTime())) : null
     };
+  },
+
+  // Add file reference to property
+  addFileReference: (propertyId, fileReference) => {
+    try {
+      const properties = propertyStorage.getAllProperties();
+      const propertyIndex = properties.findIndex(p => p.id === propertyId);
+      
+      if (propertyIndex >= 0) {
+        if (!properties[propertyIndex].fileReferences) {
+          properties[propertyIndex].fileReferences = [];
+        }
+        properties[propertyIndex].fileReferences.push(fileReference);
+        properties[propertyIndex].updatedAt = new Date().toISOString();
+        localStorage.setItem(PROPERTY_STORAGE_KEY, JSON.stringify(properties));
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error adding file reference:', error);
+      return false;
+    }
+  },
+
+  // Remove file reference from property
+  removeFileReference: (propertyId, fileId) => {
+    try {
+      const properties = propertyStorage.getAllProperties();
+      const propertyIndex = properties.findIndex(p => p.id === propertyId);
+      
+      if (propertyIndex >= 0 && properties[propertyIndex].fileReferences) {
+        properties[propertyIndex].fileReferences = properties[propertyIndex].fileReferences
+          .filter(ref => ref.id !== fileId);
+        properties[propertyIndex].updatedAt = new Date().toISOString();
+        localStorage.setItem(PROPERTY_STORAGE_KEY, JSON.stringify(properties));
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error removing file reference:', error);
+      return false;
+    }
+  },
+
+  // Get file references for a property
+  getFileReferences: (propertyId) => {
+    try {
+      const property = propertyStorage.getPropertyById(propertyId);
+      return property ? (property.fileReferences || []) : [];
+    } catch (error) {
+      console.error('Error getting file references:', error);
+      return [];
+    }
   }
 };
 
@@ -320,6 +373,7 @@ export const getDefaultProperty = () => ({
   documents: [],
   images: [],
   videos: [],
+  fileReferences: [], // References to files stored in IndexedDB
   
   // Verification Status
   verificationStatus: 'pending',

@@ -574,16 +574,16 @@
         grid-template-columns: repeat(3, 1fr);
         gap: 5px;
     }
-    
+
     .step-label-grid span {
         font-size: 0.7rem;
     }
-    
+
     .checkbox-grid {
         grid-template-columns: 1fr;
         gap: 10px;
     }
-    
+
     .checkbox-item {
         padding: 10px;
         font-size: 0.85rem;
@@ -645,6 +645,67 @@
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* File Upload Integration */
+.form-group .file-upload-container {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+}
+
+.form-group .file-upload-container .file-upload-header {
+    margin-bottom: 15px;
+}
+
+.form-group .file-upload-container .file-upload-header h3 {
+    font-size: 1.2rem;
+    margin-bottom: 5px;
+}
+
+.form-group .file-upload-container .file-upload-header p {
+    font-size: 0.9rem;
+}
+
+/* Enhanced form step 6 styling for file upload */
+.form-step:has(.file-upload-container) {
+    padding-bottom: 20px;
+}
+
+.form-step:has(.file-upload-container) h3 {
+    margin-bottom: 20px;
+}
+
+/* File upload section styling */
+.file-upload-section {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 2px solid #e2e8f0;
+}
+
+.file-upload-section h4 {
+    color: var(--clr-orange);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 15px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.file-upload-section h4::before {
+    content: "📁";
+    font-size: 1.2rem;
+}
+
+/* Dark theme for file upload integration */
+:root.dark-theme .file-upload-section {
+    border-color: #4a5568;
+}
+
+:root.dark-theme .file-upload-section h4 {
+    color: #e2e8f0;
 }
 
 /* Loading state */

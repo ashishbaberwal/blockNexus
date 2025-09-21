@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { propertyTypes, getDefaultProperty, validateProperty, amenityOptions, furnishingOptions, facingDirections, ownershipTypes, nearbyFacilities } from '../services/propertyStorage';
+import { propertyTypes, getDefaultProperty, validateProperty, amenityOptions, furnishingOptions, facingDirections, ownershipTypes, nearbyFacilities, propertyStorage } from '../services/propertyStorage';
+import FileUpload from './FileUpload';
 import './PropertyForm.css';
 
 const PropertyForm = ({ property, onSave, onCancel }) => {
@@ -11,6 +12,8 @@ const PropertyForm = ({ property, onSave, onCancel }) => {
   const [selectedAmenities, setSelectedAmenities] = useState([]);
   const [selectedNearbyFacilities, setSelectedNearbyFacilities] = useState([]);
   const [subTypeOptions, setSubTypeOptions] = useState([]);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [uploadedFolders, setUploadedFolders] = useState([]);
 
   useEffect(() => {
     if (property) {
@@ -66,6 +69,25 @@ const PropertyForm = ({ property, onSave, onCancel }) => {
     }
   };
 
+  const handleFilesUploaded = (files) => {
+    setUploadedFiles(prev => [...prev, ...files]);
+    
+    // Create file references for the property
+    const fileReferences = files.map(file => ({
+      id: file.id,
+      fileName: file.fileName,
+      fileType: file.fileType,
+      fileSize: file.fileSize,
+      uploadDate: file.uploadDate,
+      folderId: file.folderId || null
+    }));
+
+    setFormData(prev => ({
+      ...prev,
+      fileReferences: [...(prev.fileReferences || []), ...fileReferences]
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -82,7 +104,16 @@ const PropertyForm = ({ property, onSave, onCancel }) => {
 
     setIsSubmitting(true);
     try {
-      await onSave(formData);
+      // Save the property first
+      const savedProperty = await onSave(formData);
+      
+      // Save file references to property storage
+      if (formData.fileReferences && formData.fileReferences.length > 0) {
+        formData.fileReferences.forEach(fileRef => {
+          propertyStorage.addFileReference(savedProperty.id || formData.id, fileRef);
+        });
+      }
+      
     } catch (error) {
       console.error('Error saving property:', error);
       alert('Failed to save property. Please try again.');
@@ -843,6 +874,17 @@ const PropertyForm = ({ property, onSave, onCancel }) => {
           onChange={handleInputChange}
           placeholder="Any additional information about the property"
           rows="3"
+        />
+      </div>
+
+      {/* File Upload Section */}
+      <div className="file-upload-section">
+        <h4>Property Documents & Files</h4>
+        <FileUpload
+          propertyId={formData.id || 'temp'}
+          onFilesUploaded={handleFilesUploaded}
+          existingFiles={uploadedFiles}
+          existingFolders={uploadedFolders}
         />
       </div>
     </div>

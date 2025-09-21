@@ -19,6 +19,7 @@ export const UserProvider = ({ children }) => {
   const [account, setAccount] = useState(null);
   const [provider, setProvider] = useState(null);
   const [kycStatus, setKycStatus] = useState(null); // 'not_submitted', 'pending', 'approved', 'rejected'
+  const [userRole, setUserRole] = useState(null); // 'buyer', 'seller', 'inspector', 'admin'
 
   // Load user data from localStorage on component mount
   useEffect(() => {
@@ -26,9 +27,11 @@ export const UserProvider = ({ children }) => {
     const savedAccount = localStorage.getItem('blockNexusAccount');
     
     if (savedUser && savedAccount) {
-      setUser(JSON.parse(savedUser));
+      const userData = JSON.parse(savedUser);
+      setUser(userData);
       setAccount(savedAccount);
       setIsAuthenticated(true);
+      setUserRole(userData.role || 'buyer');
     }
   }, []);
 
@@ -93,13 +96,23 @@ export const UserProvider = ({ children }) => {
       ]);
       console.log('✅ Message signed successfully');
       
+      // Map userType to role
+      const roleMapping = {
+        'buyer': 'buyer',
+        'seller': 'seller',
+        'agent': 'agent',
+        'investor': 'investor',
+        'inspector': 'inspector'
+      };
+
       const userData = {
         ...userInfo,
         walletAddress,
         signature,
         registrationDate: new Date().toISOString(),
         lastLogin: new Date().toISOString(),
-        kycStatus: 'not_submitted'
+        kycStatus: 'not_submitted',
+        role: roleMapping[userInfo.userType] || 'buyer'
       };
 
       console.log('💾 Saving to localStorage...');
@@ -122,6 +135,7 @@ export const UserProvider = ({ children }) => {
       setAccount(walletAddress);
       setIsAuthenticated(true);
       setKycStatus('not_submitted');
+      setUserRole(userData.role);
       
       return userData;
     } catch (error) {
@@ -158,6 +172,7 @@ export const UserProvider = ({ children }) => {
       setUser(userData);
       setAccount(walletAddress);
       setIsAuthenticated(true);
+      setUserRole(userData.role || 'buyer');
       
       return userData;
     } catch (error) {
@@ -286,6 +301,7 @@ export const UserProvider = ({ children }) => {
     isLoading,
     account,
     kycStatus,
+    userRole,
     registerUser,
     loginUser,
     logoutUser,

@@ -8,6 +8,7 @@ import PropertiesPage from './components/PropertiesPage';
 import AboutPage from './components/AboutPage';
 import Home from './components/Home';
 import PropertyList from './components/PropertyList';
+import InspectorDashboard from './components/InspectorDashboard';
 
 // Context
 import { UserProvider } from './contexts/UserContext';
@@ -84,6 +85,20 @@ function App() {
         return <PropertyList />;
       case 'about':
         return <AboutPage />;
+      case 'inspector':
+        // Check if user is authenticated and has inspector role
+        if (!account) {
+          setCurrentPage('home');
+          return <HomePage homes={homes} togglePop={togglePop} setCurrentPage={setCurrentPage} />;
+        }
+        return <InspectorDashboard defaultTab="pending" title="Property Verification Dashboard" />;
+      case 'approve':
+        // Check if user is authenticated and has inspector role
+        if (!account) {
+          setCurrentPage('home');
+          return <HomePage homes={homes} togglePop={togglePop} setCurrentPage={setCurrentPage} />;
+        }
+        return <InspectorDashboard defaultTab="pending" title="Approve Properties" />;
       default:
         return <HomePage homes={homes} togglePop={togglePop} setCurrentPage={setCurrentPage} />;
     }
