@@ -184,7 +184,8 @@ const EnhancedPropertyForm = ({ property, onSave, onCancel }) => {
         const newErrors = {};
 
         if (step === 1) {
-            if (!formData.title.trim()) newErrors.title = "Property title is required";
+            if (!formData.title.trim())
+                newErrors.title = "Property title is required";
             if (!formData.fullAddress.trim())
                 newErrors.fullAddress = "Address is required";
             if (!formData.type) newErrors.type = "Property type is required";
@@ -356,7 +357,9 @@ const EnhancedPropertyForm = ({ property, onSave, onCancel }) => {
                         className={errors.ownerName ? "error" : ""}
                     />
                     {errors.ownerName && (
-                        <span className="error-message">{errors.ownerName}</span>
+                        <span className="error-message">
+                            {errors.ownerName}
+                        </span>
                     )}
                 </div>
 
@@ -411,14 +414,19 @@ const EnhancedPropertyForm = ({ property, onSave, onCancel }) => {
                     <label htmlFor="imageUpload" className="upload-button">
                         📷 Add Photos
                     </label>
-                    <p className="upload-hint">Add photos to showcase your property</p>
+                    <p className="upload-hint">
+                        Add photos to showcase your property
+                    </p>
                 </div>
-                
+
                 {formData.images.length > 0 && (
                     <div className="image-preview-grid">
                         {formData.images.map((image, index) => (
                             <div key={index} className="image-preview-item">
-                                <img src={image} alt={`Property ${index + 1}`} />
+                                <img
+                                    src={image}
+                                    alt={`Property ${index + 1}`}
+                                />
                                 <button
                                     type="button"
                                     onClick={() => removeImage(index)}
@@ -443,10 +451,6 @@ const EnhancedPropertyForm = ({ property, onSave, onCancel }) => {
             </div>
         </div>
     );
-
-
-
-
 
     return (
         <div className="property-form">
