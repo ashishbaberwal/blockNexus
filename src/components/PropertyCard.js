@@ -71,7 +71,6 @@ const PropertyCard = ({ property, viewMode, onEdit, onDelete }) => {
           </div>
           <div className="property-meta">
             <div className="meta-badges">
-              <span className="property-badge">{property.bedrooms ? `${property.bedrooms} BHK` : 'N/A'}</span>
               <span className="property-badge area">{property.landArea}</span>
               {property.currentValue && (
                 <span className="property-badge price">{formatCurrency(property.currentValue)}</span>
@@ -222,18 +221,6 @@ const PropertyCard = ({ property, viewMode, onEdit, onDelete }) => {
 
                   <div className="detail-section">
                     <h4>🏠 Property Features</h4>
-                    {property.bedrooms && (
-                      <div className="detail-item">
-                        <span className="label">Bedrooms:</span>
-                        <span className="value">{property.bedrooms} BHK</span>
-                      </div>
-                    )}
-                    {property.bathrooms && (
-                      <div className="detail-item">
-                        <span className="label">Bathrooms:</span>
-                        <span className="value">{property.bathrooms}</span>
-                      </div>
-                    )}
                     {property.parkingSpaces && (
                       <div className="detail-item">
                         <span className="label">Parking:</span>
@@ -423,12 +410,6 @@ const PropertyCard = ({ property, viewMode, onEdit, onDelete }) => {
             <span className="icon">📏</span>
             <span>{property.landArea}</span>
           </div>
-          {property.bedrooms && (
-            <div className="meta-item">
-              <span className="icon">🏠</span>
-              <span>{property.bedrooms} BHK</span>
-            </div>
-          )}
           {property.currentValue && (
             <div className="meta-item price">
               <span className="icon">💰</span>

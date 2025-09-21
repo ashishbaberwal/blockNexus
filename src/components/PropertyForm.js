@@ -125,7 +125,7 @@ const PropertyForm = ({ property, onSave, onCancel }) => {
   const getStepWithErrors = (errors) => {
     const step1Fields = ['propertyNumber', 'propertyTitle', 'type', 'subType', 'landArea'];
     const step2Fields = ['location', 'streetAddress', 'city', 'district', 'state', 'pincode'];
-    const step3Fields = ['bedrooms', 'bathrooms', 'yearBuilt', 'furnishingStatus'];
+    const step3Fields = ['yearBuilt', 'furnishingStatus'];
     const step4Fields = ['currentValue', 'purchasePrice', 'registrationValue'];
     const step5Fields = ['ownerName', 'ownerContact', 'ownerEmail'];
     
@@ -419,40 +419,6 @@ const PropertyForm = ({ property, onSave, onCancel }) => {
     <div className="form-step">
       <h3>Property Features & Specifications</h3>
       
-      <div className="form-row">
-        <div className="form-group">
-          <label htmlFor="bedrooms">Bedrooms</label>
-          <select
-            id="bedrooms"
-            name="bedrooms"
-            value={formData.bedrooms}
-            onChange={handleInputChange}
-          >
-            <option value="">Select bedrooms</option>
-            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-              <option key={num} value={num}>
-                {num === 0 ? 'Studio' : `${num} BHK`}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="bathrooms">Bathrooms</label>
-          <select
-            id="bathrooms"
-            name="bathrooms"
-            value={formData.bathrooms}
-            onChange={handleInputChange}
-          >
-            <option value="">Select bathrooms</option>
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-              <option key={num} value={num}>{num}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-
       <div className="form-row">
         <div className="form-group">
           <label htmlFor="parkingSpaces">Parking Spaces</label>

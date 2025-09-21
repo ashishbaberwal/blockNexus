@@ -28,8 +28,6 @@ const EnhancedPropertyForm = ({ property, onSave, onCancel }) => {
     
     // Additional Details
     price: '',
-    bedrooms: '',
-    bathrooms: '',
     parking: '',
     furnishing: '',
     facing: '',
@@ -183,8 +181,6 @@ const EnhancedPropertyForm = ({ property, onSave, onCancel }) => {
 
     if (step === 3) {
       if (!formData.price) newErrors.price = 'Price is required';
-      if (!formData.bedrooms) newErrors.bedrooms = 'Number of bedrooms is required';
-      if (!formData.bathrooms) newErrors.bathrooms = 'Number of bathrooms is required';
     }
 
     setErrors(newErrors);
@@ -535,45 +531,7 @@ const EnhancedPropertyForm = ({ property, onSave, onCancel }) => {
         {errors.price && <span className="error-message">{errors.price}</span>}
       </div>
 
-      <div className="form-row">
-        <div className="form-group">
-          <label htmlFor="bedrooms">Bedrooms *</label>
-          <select
-            id="bedrooms"
-            name="bedrooms"
-            value={formData.bedrooms}
-            onChange={handleInputChange}
-            className={errors.bedrooms ? 'error' : ''}
-          >
-            <option value="">Select</option>
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5+">5+</option>
-          </select>
-          {errors.bedrooms && <span className="error-message">{errors.bedrooms}</span>}
-        </div>
 
-        <div className="form-group">
-          <label htmlFor="bathrooms">Bathrooms *</label>
-          <select
-            id="bathrooms"
-            name="bathrooms"
-            value={formData.bathrooms}
-            onChange={handleInputChange}
-            className={errors.bathrooms ? 'error' : ''}
-          >
-            <option value="">Select</option>
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5+">5+</option>
-          </select>
-          {errors.bathrooms && <span className="error-message">{errors.bathrooms}</span>}
-        </div>
-      </div>
 
       <div className="form-row">
         <div className="form-group">

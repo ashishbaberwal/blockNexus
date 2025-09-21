@@ -146,6 +146,13 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
       console.log('user:', user);
       console.log('user?.kycVerified:', user?.kycVerified);
       
+      // Debug contract availability
+      console.log('Contract debug info:');
+      console.log('- escrow contract:', escrow ? 'Available' : 'Not available');
+      console.log('- provider:', provider ? 'Available' : 'Not available');
+      console.log('- account:', account);
+      console.log('- home.id:', home.id);
+      
       if (!isAuthenticated) {
         window.alert('Please connect your wallet first.');
         return;
@@ -192,72 +199,181 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
       }
 
       try {
-        const escrowAmount = await escrow.escrowAmount(home.id)
-        const signer = await provider.getSigner()
+        // Check if contracts are available
+        if (!escrow || !provider) {
+          throw new Error('Blockchain connection not available. Please refresh the page and try again.');
+        }
 
-        // Create transaction in localStorage first
-        const transactionData = {
-          propertyId: home.id.toString(),
-          propertyName: home.name,
-          propertyAddress: home.address,
-          buyerAddress: account,
-          sellerAddress: seller,
-          lenderAddress: lender,
-          inspectorAddress: inspector,
-          salePrice: parseFloat(home.attributes[0].value),
-          currency: 'ETH',
-          participants: [account, seller, lender, inspector],
-          propertyDetails: {
-            name: home.name,
-            address: home.address,
-            bedrooms: home.attributes[2].value,
-            bathrooms: home.attributes[3].value,
-            sqft: home.attributes[4].value,
-            description: home.description
+        // Check if this is a blockchain property (ID 1-3) or UI-only property (ID 4+)
+        const isBlockchainProperty = parseInt(home.id) <= 3;
+        let createResult = null;
+        
+        if (isBlockchainProperty) {
+          // Handle blockchain properties with escrow contract
+          console.log('Processing blockchain property transaction...');
+          
+          try {
+            const escrowAmount = await escrow.escrowAmount(home.id)
+            console.log('Escrow amount:', escrowAmount.toString());
+            
+            const signer = await provider.getSigner()
+            console.log('Signer obtained:', signer.address);
+
+            // Create transaction in localStorage first
+            const transactionData = {
+              propertyId: home.id.toString(),
+              propertyName: home.name,
+              propertyAddress: home.address,
+              buyerAddress: account,
+              sellerAddress: seller,
+              lenderAddress: lender,
+              inspectorAddress: inspector,
+              salePrice: parseFloat(home.attributes[0].value),
+              currency: 'ETH',
+              participants: [account, seller, lender, inspector],
+              propertyDetails: {
+                name: home.name,
+                address: home.address,
+                bedrooms: home.attributes[2].value,
+                bathrooms: home.attributes[3].value,
+                sqft: home.attributes[4].value,
+                description: home.description
+              }
+            };
+
+            createResult = await createTransaction(transactionData);
+            console.log('Transaction created in localStorage:', createResult.id);
+
+            // Check if property is already listed
+            const isListed = await escrow.isListed(home.id);
+            console.log('Property is listed:', isListed);
+            
+            if (!isListed) {
+              throw new Error('Property is not listed for sale');
+            }
+
+            // Step 1: Buyer deposit earnest - This will call MetaMask
+            console.log('Step 1: Buyer depositing earnest money...');
+            let transaction = await escrow.connect(signer).depositEarnest(home.id, { 
+              value: escrowAmount,
+              gasLimit: 300000
+            });
+            console.log('Deposit transaction sent:', transaction.hash);
+            await transaction.wait();
+            console.log('✅ Buyer deposit confirmed');
+
+            // Step 2: Buyer approves - This will call MetaMask again
+            console.log('Step 2: Buyer approving sale...');
+            transaction = await escrow.connect(signer).approveSale(home.id, {
+              gasLimit: 200000
+            });
+            console.log('Approve transaction sent:', transaction.hash);
+            await transaction.wait();
+            console.log('✅ Buyer approval confirmed');
+
+            setHasBought(true)
+            setBuyRequestSent(true)
+            console.log('✅ Buyer transaction completed successfully');
+            window.alert('✅ Purchase initiated! Please wait for lender, inspector, and seller approvals.');
+          } catch (blockchainError) {
+            console.error('Blockchain transaction error:', blockchainError);
+            
+            // Provide more specific error messages
+            if (blockchainError.code === 'ACTION_REJECTED') {
+              throw new Error('Transaction was rejected by user. Please try again and approve the transaction in MetaMask.');
+            } else if (blockchainError.code === 'INSUFFICIENT_FUNDS') {
+              throw new Error('Insufficient ETH balance. Please add more ETH to your wallet.');
+            } else if (blockchainError.message?.includes('execution reverted')) {
+              throw new Error('Transaction failed: ' + blockchainError.message);
+            } else if (blockchainError.message?.includes('not listed')) {
+              throw new Error('This property is not available for purchase.');
+            } else {
+              throw new Error('Blockchain transaction failed: ' + (blockchainError.message || 'Unknown error'));
+            }
           }
-        };
+        } else {
+          // Handle UI-only properties (no blockchain interaction)
+          const transactionData = {
+            propertyId: home.id.toString(),
+            propertyName: home.name,
+            propertyAddress: home.address,
+            buyerAddress: account,
+            sellerAddress: 'UI-Property-Seller', // Placeholder for UI properties
+            lenderAddress: 'UI-Property-Lender', // Placeholder for UI properties
+            inspectorAddress: 'UI-Property-Inspector', // Placeholder for UI properties
+            salePrice: parseFloat(home.attributes[0].value),
+            currency: 'ETH',
+            participants: [account, 'UI-Property-Seller', 'UI-Property-Lender', 'UI-Property-Inspector'],
+            propertyDetails: {
+              name: home.name,
+              address: home.address,
+              bedrooms: home.attributes[2]?.value || 0,
+              bathrooms: home.attributes[3]?.value || 0,
+              sqft: home.attributes[4]?.value || 0,
+              description: home.description
+            },
+            status: 'ui_property_request',
+            isUIProperty: true
+          };
 
-        const createResult = await createTransaction(transactionData);
+          createResult = await createTransaction(transactionData);
+          
+          setHasBought(true)
+          setBuyRequestSent(true)
+          
+          // Show success message for UI properties
+          window.alert(`Purchase request submitted for ${home.name}! This is a UI-only property, so the transaction will be processed through our internal system.`);
+        }
 
-        // Buyer deposit earnest - This will call MetaMask
-        let transaction = await escrow.connect(signer).depositEarnest(home.id, { value: escrowAmount })
-        await transaction.wait()
-
-        // Buyer approves - This will call MetaMask again
-        transaction = await escrow.connect(signer).approveSale(home.id)
-        await transaction.wait()
-
-        setHasBought(true)
-        setBuyRequestSent(true)
-
-        // Send notifications to all parties
-        await sendTransactionNotification(lender, 'lender_approval_required', {
-          propertyName: home.name,
-          transactionId: createResult.id,
-          propertyId: home.id.toString()
-        });
+        // Send notifications to all parties (only for blockchain properties)
+        if (isBlockchainProperty && createResult) {
+          await sendTransactionNotification(lender, 'lender_approval_required', {
+            propertyName: home.name,
+            transactionId: createResult.id,
+            propertyId: home.id.toString()
+          });
+        }
 
         // Reload transaction data
         loadTransaction();
       } catch (error) {
         console.error('Error in buy handler:', error);
-        window.alert('Transaction failed. Please try again.');
+        
+        // Show specific error message based on error type
+        let errorMessage = 'Transaction failed. Please try again.';
+        
+        if (error.message) {
+          errorMessage = error.message;
+        } else if (error.code === 'ACTION_REJECTED') {
+          errorMessage = 'Transaction was rejected. Please try again and approve the transaction in MetaMask.';
+        } else if (error.code === 'INSUFFICIENT_FUNDS') {
+          errorMessage = 'Insufficient ETH balance. Please add more ETH to your wallet.';
+        } else if (error.message?.includes('User denied')) {
+          errorMessage = 'Transaction was cancelled. Please try again.';
+        } else if (error.message?.includes('not connected')) {
+          errorMessage = 'Wallet not connected. Please connect your wallet and try again.';
+        }
+        
+        window.alert(errorMessage);
       }
     }
 
     const inspectHandler = async () => {
       console.log('Inspect button clicked!');
-      console.log('isAuthenticated:', isAuthenticated);
-      console.log('account:', account);
-      console.log('inspector:', inspector);
       
       if (!isAuthenticated) {
         window.alert('Please connect your wallet first.');
         return;
       }
       
+      // Check if contracts are available
+      if (!escrow || !provider) {
+        window.alert('Blockchain connection not available. Please refresh the page and try again.');
+        return;
+      }
+      
       // Check if current account is the inspector
-      if (account.toLowerCase() !== inspector.toLowerCase()) {
+      if (!inspector || account.toLowerCase() !== inspector.toLowerCase()) {
         window.alert('Only the inspector can approve inspections.');
         return;
       }
@@ -265,43 +381,43 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
       try {
         const signer = await provider.getSigner()
         
-        console.log('Starting inspection approval...');
-        console.log('Home ID:', home.id);
-        console.log('Account:', account);
-        console.log('Inspector address from contract:', inspector);
+        // Check if property is listed
+        const isListed = await escrow.isListed(home.id);
+        if (!isListed) {
+          throw new Error('Property is not listed for sale');
+        }
         
-        // Inspector updates status
-        console.log('Calling updateInspectionStatus...');
-        const blockchainTx = await escrow.connect(signer).updateInspectionStatus(home.id, true)
-        await blockchainTx.wait()
-        console.log('updateInspectionStatus completed');
+        // Step 3: Inspector updates status - This will call MetaMask
+        console.log('Step 3: Inspector approving inspection...');
+        const blockchainTx = await escrow.connect(signer).updateInspectionStatus(home.id, true, {
+          gasLimit: 100000
+        });
+        console.log('Inspection transaction sent:', blockchainTx.hash);
+        await blockchainTx.wait();
+        console.log('✅ Inspector approval confirmed');
 
         setHasInspected(true)
 
         // Update transaction status in localStorage
         if (transaction) {
-          try {
-            await updateTransactionStatus(transaction.id, 'inspector_approved', 'inspector');
-            
-            // Send notifications
-            await sendTransactionNotification(transaction.buyerAddress, 'inspector_approved', {
-              propertyName: home.name,
-              transactionId: transaction.id
-            });
-            
-            await sendTransactionNotification(transaction.sellerAddress, 'seller_approval_required', {
-              propertyName: home.name,
-              transactionId: transaction.id
-            });
-          } catch (notificationError) {
-            console.warn('Error updating transaction status or sending notifications:', notificationError);
-            // Don't fail the whole process for notification errors
-          }
+          await updateTransactionStatus(transaction.id, 'inspector_approved', 'inspector');
+          
+          // Send notifications
+          await sendTransactionNotification(transaction.buyerAddress, 'inspector_approved', {
+            propertyName: home.name,
+            transactionId: transaction.id
+          });
+          
+          await sendTransactionNotification(transaction.sellerAddress, 'seller_approval_required', {
+            propertyName: home.name,
+            transactionId: transaction.id
+          });
         }
         
-        window.alert('Inspection approved successfully!');
+        window.alert('✅ Inspection approved successfully! Lender can now proceed.');
       } catch (error) {
         console.error('Error in inspect handler:', error);
+        
         window.alert('Inspection approval failed: ' + (error.message || 'Unknown error'));
       }
     }
@@ -345,21 +461,25 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
           return;
         }
         
-        // Lender approves...
-        console.log('Calling approveSale...');
-        const blockchainTx = await escrow.connect(signer).approveSale(home.id)
-        await blockchainTx.wait()
-        console.log('approveSale completed');
+        // Step 4: Lender approves - This will call MetaMask
+        console.log('Step 4: Lender approving sale...');
+        const blockchainTx = await escrow.connect(signer).approveSale(home.id, {
+          gasLimit: 200000
+        });
+        console.log('Lender approval transaction sent:', blockchainTx.hash);
+        await blockchainTx.wait();
+        console.log('✅ Lender approval confirmed');
 
-        // Lender sends funds to contract...
-        console.log('Sending funds to contract...');
+        // Step 5: Lender sends funds to contract - This will call MetaMask again
+        console.log('Step 5: Lender sending funds...');
         const fundTx = await signer.sendTransaction({ 
-          to: await escrow.getAddress(), 
+          to: escrow.target, 
           value: lendAmount.toString(), 
           gasLimit: 100000 
         });
+        console.log('Fund transaction sent:', fundTx.hash);
         await fundTx.wait();
-        console.log('Funds sent successfully');
+        console.log('✅ Lender funds sent successfully');
 
         setHasLended(true)
 
@@ -385,7 +505,7 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
           }
         }
         
-        window.alert('Lending approved and funds sent successfully!');
+        window.alert('✅ Lending approved and funds sent successfully! Seller can now finalize the sale.');
       } catch (error) {
         console.error('Error in lend handler:', error);
         window.alert('Lending failed: ' + (error.message || 'Unknown error'));
@@ -457,11 +577,14 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
           return;
         }
 
-        // Seller approves...
-        console.log('Calling approveSale...');
-        let blockchainTx = await escrow.connect(signer).approveSale(home.id)
-        await blockchainTx.wait()
-        console.log('approveSale completed');
+        // Step 6: Seller approves - This will call MetaMask
+        console.log('Step 6: Seller approving sale...');
+        let blockchainTx = await escrow.connect(signer).approveSale(home.id, {
+          gasLimit: 200000
+        });
+        console.log('Seller approval transaction sent:', blockchainTx.hash);
+        await blockchainTx.wait();
+        console.log('✅ Seller approval confirmed');
 
         // Check if all approvals are in place before finalizing
         const buyerApproval = await escrow.approval(home.id, await escrow.buyer(home.id));
@@ -480,11 +603,14 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
           return;
         }
 
-        // Seller finalize...
-        console.log('Calling finalizeSale...');
-        blockchainTx = await escrow.connect(signer).finalizeSale(home.id)
-        await blockchainTx.wait()
-        console.log('finalizeSale completed');
+        // Step 7: Seller finalizes sale - This will call MetaMask
+        console.log('Step 7: Seller finalizing sale...');
+        blockchainTx = await escrow.connect(signer).finalizeSale(home.id, {
+          gasLimit: 300000
+        });
+        console.log('Finalize transaction sent:', blockchainTx.hash);
+        await blockchainTx.wait();
+        console.log('✅ Sale finalized successfully');
     
         setHasSold(true)
 
@@ -503,7 +629,7 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
           }
         }
         
-        window.alert('Sale completed successfully!');
+        window.alert('🎉 Sale completed successfully! Property has been transferred to the buyer.');
       } catch (error) {
         console.error('Error in sell handler:', error);
         window.alert('Transaction failed: ' + error.message);
@@ -557,15 +683,15 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
                     <button className="home__buy" disabled>
                       Connect Wallet to Buy
                     </button>
-                  ) : account === inspector ? (
+                  ) : (account && inspector && account.toLowerCase() === inspector.toLowerCase()) || userRole === 'inspector' ? (
                     <button className="home__buy" onClick={inspectHandler} disabled={hasInspected}>
-                      Approve Inspection
+                      {hasInspected ? 'Inspection Approved' : 'Approve Inspection'}
                     </button>
-                  ) : account === lender ? (
+                  ) : account && lender && account.toLowerCase() === lender.toLowerCase() ? (
                     <button className="home__buy" onClick={lendHandler} disabled={hasLended}>
                       Approve & Lend
                     </button>
-                  ) : account === seller ? (
+                  ) : account && seller && account.toLowerCase() === seller.toLowerCase() ? (
                     <button className="home__buy" onClick={sellHandler} disabled={hasSold}>
                       Approve & Sell
                     </button>
@@ -700,7 +826,7 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
               </div>
             </div>
 
-            <button onClick={togglePop} className="home__close">
+            <button onClick={() => togglePop(null)} className="home__close">
               <img src={close} alt="Close" />
             </button>
           </div>

@@ -52,9 +52,20 @@ const PropertiesPage = ({ homes, togglePop }) => {
                   </div>
                   <div className='property-item__details'>
                     <p>
-                      <strong>{home.attributes[2].value}</strong> bds |
-                      <strong>{home.attributes[3].value}</strong> ba |
-                      <strong>{home.attributes[4].value}</strong> sqft
+                      {home.attributes[2]?.value > 0 && (
+                        <>
+                          <strong>{home.attributes[2].value}</strong> bds |
+                        </>
+                      )}
+                      {home.attributes[3]?.value > 0 && (
+                        <>
+                          <strong>{home.attributes[3].value}</strong> ba |
+                        </>
+                      )}
+                      <strong>{home.attributes[4]?.value || 0}</strong> sqft
+                      {home.attributes[1]?.value && (
+                        <> | <strong>{home.attributes[1].value}</strong></>
+                      )}
                     </p>
                     <p className='property-item__address'>{home.address}</p>
                   </div>

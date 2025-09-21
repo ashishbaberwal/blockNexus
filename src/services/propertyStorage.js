@@ -319,8 +319,6 @@ export const getDefaultProperty = () => ({
   geoCoordinates: '',
   
   // Property Features
-  bedrooms: '',
-  bathrooms: '',
   parkingSpaces: '',
   amenities: [],
   furnishingStatus: '',
