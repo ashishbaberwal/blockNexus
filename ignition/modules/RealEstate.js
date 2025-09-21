@@ -33,7 +33,7 @@ module.exports = buildModule("RealEstateDeployment", (m) => {
     inspector,
     lender
   ]);
-
+  
   // Approve properties with unique IDs
   const approvedProperties = [];
   for (let i = 0; i < 3; i++) {

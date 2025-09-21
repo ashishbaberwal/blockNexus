@@ -1,11 +1,9 @@
-// IndexedDB Transaction Service
-// Replaces Firebase Firestore with IndexedDB for transaction management
-
-import indexedDBService from './indexedDBService';
+// Local Storage Transaction Service
+// Replaces Firebase Firestore with localStorage for transaction management
 
 class LocalTransactionService {
   constructor() {
-    this.storageKey = 'blockNexus_Transactions'; // Keep for backward compatibility
+    this.storageKey = 'blockNexus_Transactions';
   }
 
   // Generate unique transaction ID
@@ -13,20 +11,30 @@ class LocalTransactionService {
     return 'tx_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   }
 
-  // Get all transactions from IndexedDB
-  async getAllTransactions() {
+  // Get all transactions from localStorage
+  getAllTransactions() {
     try {
-      return await indexedDBService.getAll('transactions');
+      const data = localStorage.getItem(this.storageKey);
+      return data ? JSON.parse(data) : [];
     } catch (error) {
       console.error('Error getting transactions:', error);
       return [];
     }
   }
 
-  // Save transaction to IndexedDB
-  async saveTransaction(transaction) {
+  // Save transaction to localStorage
+  saveTransaction(transaction) {
     try {
-      await indexedDBService.put('transactions', transaction);
+      const transactions = this.getAllTransactions();
+      const existingIndex = transactions.findIndex(t => t.id === transaction.id);
+      
+      if (existingIndex >= 0) {
+        transactions[existingIndex] = transaction;
+      } else {
+        transactions.push(transaction);
+      }
+      
+      localStorage.setItem(this.storageKey, JSON.stringify(transactions));
       return transaction;
     } catch (error) {
       console.error('Error saving transaction:', error);
@@ -35,9 +43,10 @@ class LocalTransactionService {
   }
 
   // Get transaction by ID
-  async getTransactionById(id) {
+  getTransactionById(id) {
     try {
-      return await indexedDBService.get('transactions', id);
+      const transactions = this.getAllTransactions();
+      return transactions.find(t => t.id === id) || null;
     } catch (error) {
       console.error('Error getting transaction by ID:', error);
       return null;
@@ -45,9 +54,10 @@ class LocalTransactionService {
   }
 
   // Get transactions by property ID
-  async getTransactionsByProperty(propertyId) {
+  getTransactionsByProperty(propertyId) {
     try {
-      return await indexedDBService.getByIndex('transactions', 'propertyId', propertyId);
+      const transactions = this.getAllTransactions();
+      return transactions.filter(t => t.propertyId === propertyId);
     } catch (error) {
       console.error('Error getting transactions by property:', error);
       return [];
@@ -55,10 +65,10 @@ class LocalTransactionService {
   }
 
   // Get transactions by user address
-  async getTransactionsByUser(userAddress) {
+  getTransactionsByUser(userAddress) {
     try {
-      const allTransactions = await this.getAllTransactions();
-      return allTransactions.filter(t => 
+      const transactions = this.getAllTransactions();
+      return transactions.filter(t => 
         t.buyerAddress === userAddress ||
         t.sellerAddress === userAddress ||
         t.lenderAddress === userAddress ||
@@ -71,9 +81,9 @@ class LocalTransactionService {
   }
 
   // Update transaction status
-  async updateTransactionStatus(id, status, updatedBy) {
+  updateTransactionStatus(id, status, updatedBy) {
     try {
-      const transaction = await this.getTransactionById(id);
+      const transaction = this.getTransactionById(id);
       if (!transaction) {
         throw new Error('Transaction not found');
       }
@@ -93,7 +103,7 @@ class LocalTransactionService {
         updatedBy
       });
 
-      return await this.saveTransaction(transaction);
+      return this.saveTransaction(transaction);
     } catch (error) {
       console.error('Error updating transaction status:', error);
       throw error;
@@ -118,7 +128,7 @@ export const createTransaction = async (transactionData) => {
       }]
     };
     
-    return await localTransactionService.saveTransaction(transaction);
+    return localTransactionService.saveTransaction(transaction);
   } catch (error) {
     console.error('Error creating transaction:', error);
     throw error;
@@ -127,7 +137,7 @@ export const createTransaction = async (transactionData) => {
 
 export const getTransactionByProperty = async (propertyId) => {
   try {
-    const transactions = await localTransactionService.getTransactionsByProperty(propertyId);
+    const transactions = localTransactionService.getTransactionsByProperty(propertyId);
     return transactions.length > 0 ? transactions[0] : null;
   } catch (error) {
     console.error('Error getting transaction by property:', error);
@@ -137,7 +147,7 @@ export const getTransactionByProperty = async (propertyId) => {
 
 export const updateTransactionStatus = async (transactionId, status, updatedBy) => {
   try {
-    return await localTransactionService.updateTransactionStatus(transactionId, status, updatedBy);
+    return localTransactionService.updateTransactionStatus(transactionId, status, updatedBy);
   } catch (error) {
     console.error('Error updating transaction status:', error);
     throw error;
@@ -235,7 +245,9 @@ export const generateEStampPaper = async (transactionData) => {
 
 export const getUserNotifications = async (userAddress) => {
   try {
-    return await indexedDBService.getByIndex('notifications', 'userAddress', userAddress);
+    // Get notifications from localStorage
+    const notifications = JSON.parse(localStorage.getItem('blockNexus_Notifications') || '[]');
+    return notifications.filter(n => n.userAddress === userAddress);
   } catch (error) {
     console.error('Error getting user notifications:', error);
     return [];
@@ -244,6 +256,7 @@ export const getUserNotifications = async (userAddress) => {
 
 export const addNotification = async (notification) => {
   try {
+    const notifications = JSON.parse(localStorage.getItem('blockNexus_Notifications') || '[]');
     const newNotification = {
       id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       ...notification,
@@ -251,43 +264,13 @@ export const addNotification = async (notification) => {
       read: false
     };
     
-    await indexedDBService.put('notifications', newNotification);
+    notifications.push(newNotification);
+    localStorage.setItem('blockNexus_Notifications', JSON.stringify(notifications));
+    
     return newNotification.id;
   } catch (error) {
     console.error('Error adding notification:', error);
     throw error;
-  }
-};
-
-// Migration function to move notifications from localStorage to IndexedDB
-export const migrateNotificationsToIndexedDB = async () => {
-  try {
-    const localStorageNotifications = localStorage.getItem('blockNexus_Notifications');
-    if (localStorageNotifications) {
-      const notifications = JSON.parse(localStorageNotifications);
-      console.log(`Migrating ${notifications.length} notifications to IndexedDB...`);
-      
-      for (const notification of notifications) {
-        await indexedDBService.put('notifications', notification);
-      }
-      
-      // Clear localStorage after successful migration
-      localStorage.removeItem('blockNexus_Notifications');
-      console.log('Notifications migrated successfully and localStorage cleared');
-    }
-  } catch (error) {
-    console.error('Error migrating notifications:', error);
-  }
-};
-
-// Clean up localStorage notifications to prevent quota errors
-export const cleanupNotificationsStorage = () => {
-  try {
-    // Remove notifications from localStorage to free up space
-    localStorage.removeItem('blockNexus_Notifications');
-    console.log('Cleaned up notifications from localStorage');
-  } catch (error) {
-    console.error('Error cleaning up notifications storage:', error);
   }
 };
 

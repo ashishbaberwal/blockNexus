@@ -200,8 +200,7 @@ const NotificationSystem = () => {
 
 // Notification helper functions for different transaction events
 export const sendTransactionNotification = async (userAddress, type, data) => {
-  try {
-    const notifications = {
+  const notifications = {
     lender_approval_required: {
       title: 'Loan Application Received',
       message: `New loan request for ${data.propertyName}. Review buyer's KYC documents.`,
@@ -239,19 +238,14 @@ export const sendTransactionNotification = async (userAddress, type, data) => {
     }
   };
 
-    const notificationData = notifications[type];
-    if (notificationData) {
-      await addNotification({
-        userAddress: userAddress,
-        ...notificationData,
-        transactionId: data.transactionId,
-        propertyId: data.propertyId,
-        actionUrl: data.actionUrl
-      });
-    }
-  } catch (error) {
-    console.error('Error sending notification:', error);
-    // Don't throw the error to prevent it from breaking the main transaction flow
+  const notificationData = notifications[type];
+  if (notificationData) {
+    await addNotification(userAddress, {
+      ...notificationData,
+      transactionId: data.transactionId,
+      propertyId: data.propertyId,
+      actionUrl: data.actionUrl
+    });
   }
 };
 

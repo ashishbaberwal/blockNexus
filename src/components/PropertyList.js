@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { propertyStorage, propertyTypes } from '../services/propertyStorage';
 import PropertyCard from './PropertyCard';
 import PropertyForm from './PropertyForm';
-import StorageManager from './StorageManager';
 import './PropertyList.css';
 
 const PropertyList = () => {
@@ -15,7 +14,6 @@ const PropertyList = () => {
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [sortBy, setSortBy] = useState('createdAt'); // 'createdAt', 'propertyNumber', 'type'
   const [sortOrder, setSortOrder] = useState('desc'); // 'asc' or 'desc'
-  const [showStorageManager, setShowStorageManager] = useState(false);
 
   // Load properties on component mount
   useEffect(() => {
@@ -24,15 +22,11 @@ const PropertyList = () => {
 
   // Filter and search properties
   useEffect(() => {
-    filterAndSearchProperties();
-  }, [properties, searchQuery, filterType, sortBy, sortOrder]);
-
-  const filterAndSearchProperties = async () => {
     let filtered = properties;
 
     // Apply search filter
     if (searchQuery.trim()) {
-      filtered = await propertyStorage.searchProperties(searchQuery);
+      filtered = propertyStorage.searchProperties(searchQuery);
     }
 
     // Apply type filter
@@ -68,16 +62,11 @@ const PropertyList = () => {
     });
 
     setFilteredProperties(filtered);
-  };
+  }, [properties, searchQuery, filterType, sortBy, sortOrder]);
 
-  const loadProperties = async () => {
-    try {
-      const allProperties = await propertyStorage.getAllProperties();
-      setProperties(allProperties);
-    } catch (error) {
-      console.error('Error loading properties:', error);
-      setProperties([]);
-    }
+  const loadProperties = () => {
+    const allProperties = propertyStorage.getAllProperties();
+    setProperties(allProperties);
   };
 
   const handleAddProperty = () => {
@@ -90,37 +79,25 @@ const PropertyList = () => {
     setShowForm(true);
   };
 
-  const handleDeleteProperty = async (propertyId) => {
+  const handleDeleteProperty = (propertyId) => {
     if (window.confirm('Are you sure you want to delete this property? This action cannot be undone.')) {
-      try {
-        const success = await propertyStorage.deleteProperty(propertyId);
-        if (success) {
-          loadProperties();
-        } else {
-          alert('Failed to delete property. Please try again.');
-        }
-      } catch (error) {
-        console.error('Error deleting property:', error);
+      const success = propertyStorage.deleteProperty(propertyId);
+      if (success) {
+        loadProperties();
+      } else {
         alert('Failed to delete property. Please try again.');
       }
     }
   };
 
-  const handleSaveProperty = async (propertyData) => {
-    try {
-      const success = await propertyStorage.saveProperty(propertyData);
-      if (success) {
-        loadProperties();
-        setShowForm(false);
-        setEditingProperty(null);
-        alert('Property submitted for approval successfully!');
-      } else {
-        throw new Error('Failed to save property');
-      }
-    } catch (error) {
-      console.error('Error saving property:', error);
+  const handleSaveProperty = (propertyData) => {
+    const success = propertyStorage.saveProperty(propertyData);
+    if (success) {
+      loadProperties();
+      setShowForm(false);
+      setEditingProperty(null);
+    } else {
       alert('Failed to save property. Please try again.');
-      throw error; // Re-throw so PropertyForm can handle it
     }
   };
 
@@ -153,21 +130,12 @@ const PropertyList = () => {
           <h1>My Properties</h1>
           <p>Manage your property portfolio and legal documents</p>
         </div>
-        <div className="header-actions">
-          <button 
-            className="btn btn--primary add-property-btn"
-            onClick={handleAddProperty}
-          >
-            + Add New Property
-          </button>
-          <button 
-            className="btn btn--outline"
-            onClick={() => setShowStorageManager(true)}
-            style={{ marginLeft: '10px' }}
-          >
-            🗂️ Manage Storage
-          </button>
-        </div>
+        <button 
+          className="btn btn--primary add-property-btn"
+          onClick={handleAddProperty}
+        >
+          + Add New Property
+        </button>
       </div>
 
       {/* Statistics */}
@@ -280,10 +248,6 @@ const PropertyList = () => {
             />
           ))}
         </div>
-      )}
-
-      {showStorageManager && (
-        <StorageManager onClose={() => setShowStorageManager(false)} />
       )}
     </div>
   );
