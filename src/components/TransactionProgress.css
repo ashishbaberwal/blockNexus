@@ -173,8 +173,14 @@
 
 .progress-steps {
     display: flex;
+<<<<<<< Updated upstream
     flex-direction: column;
     gap: 0; /* Remove gap to prevent overlapping */
+=======
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+>>>>>>> Stashed changes
     margin-bottom: 35px;
     position: relative;
     align-items: stretch; /* Ensure all steps have same width */
@@ -184,12 +190,19 @@
     display: flex;
     flex-direction: column;
     position: relative;
+<<<<<<< Updated upstream
     margin-bottom: 40px; /* Increased margin between steps */
     width: 100%;
+=======
+    margin-bottom: 0;
+    width: auto;
+    min-width: 90px;
+>>>>>>> Stashed changes
 }
 
 .progress-step {
     display: flex;
+<<<<<<< Updated upstream
     align-items: flex-start;
     gap: 30px;
     padding: 35px 30px;
@@ -201,6 +214,25 @@
     margin-bottom: 25px; /* Additional margin */
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     width: 100%;
+=======
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 15px;
+    border-radius: 50%;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    z-index: 2;
+    min-height: 70px;
+    max-height: 70px;
+    min-width: 70px;
+    max-width: 70px;
+    margin-bottom: 0;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    border: 2px solid transparent;
+>>>>>>> Stashed changes
 }
 
 .progress-step.completed {

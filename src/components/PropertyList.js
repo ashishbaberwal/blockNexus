@@ -134,7 +134,15 @@ const PropertyList = () => {
     return typeObj ? typeObj.label : type;
   };
 
-  const stats = propertyStorage.getStorageStats();
+  // Calculate stats from filtered properties
+  const stats = {
+    totalProperties: filteredProperties.length,
+    byType: filteredProperties.reduce((acc, property) => {
+      const type = property.type || 'unknown';
+      acc[type] = (acc[type] || 0) + 1;
+      return acc;
+    }, {})
+  };
 
   if (showForm) {
     return (
@@ -176,7 +184,7 @@ const PropertyList = () => {
           <h3>{stats.totalProperties}</h3>
           <p>Total Properties</p>
         </div>
-        {Object.entries(stats.byType).map(([type, count]) => (
+        {stats.byType && Object.entries(stats.byType).map(([type, count]) => (
           <div key={type} className="stat-card">
             <h3>{count}</h3>
             <p>{getPropertyTypeLabel(type)}</p>
