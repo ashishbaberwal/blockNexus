@@ -576,7 +576,7 @@ const PropertyForm = ({ property, onSave, onCancel }) => {
           <h4>🏠 Inspector Verification</h4>
           <p>Arrange for a certified inspector to visit and verify your property</p>
           <div className="form-group">
-            <label>
+            <label className="checkbox-label">
               <input
                 type="checkbox"
                 name="requestInspection"
@@ -586,6 +586,7 @@ const PropertyForm = ({ property, onSave, onCancel }) => {
                   requestInspection: e.target.checked
                 }))}
               />
+              <span className="checkmark"></span>
               Request Inspector Visit
             </label>
             <small className="help-text">Inspector will verify property details and upload their report</small>
@@ -639,7 +640,7 @@ const PropertyForm = ({ property, onSave, onCancel }) => {
           <h4>👥 Peer Review System</h4>
           <p>Allow community members to verify your property listing</p>
           <div className="form-group">
-            <label>
+            <label className="checkbox-label">
               <input
                 type="checkbox"
                 name="enablePeerReview"
@@ -649,6 +650,7 @@ const PropertyForm = ({ property, onSave, onCancel }) => {
                   enablePeerReview: e.target.checked
                 }))}
               />
+              <span className="checkmark"></span>
               Enable Community Verification
             </label>
             <small className="help-text">Neighbors and local community can confirm property existence</small>
@@ -765,6 +767,7 @@ const PropertyForm = ({ property, onSave, onCancel }) => {
               }))}
               required
             />
+            <span className="checkmark"></span>
             I confirm that all information provided is accurate and I agree to the terms and conditions
           </label>
           {errors.agreeToTerms && <span className="error-message">{errors.agreeToTerms}</span>}
@@ -782,6 +785,7 @@ const PropertyForm = ({ property, onSave, onCancel }) => {
               }))}
               required
             />
+            <span className="checkmark"></span>
             I consent to property verification processes including inspector visits and community reviews
           </label>
           {errors.consentToVerification && <span className="error-message">{errors.consentToVerification}</span>}

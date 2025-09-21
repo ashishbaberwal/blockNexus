@@ -1859,19 +1859,19 @@ header {
 .search-header {
     position: relative;
     text-align: center;
-    padding: 60px 20px;
+    padding: 30px 20px; /* Reduced from 60px to 30px */
     background: linear-gradient(
         135deg,
         var(--clr-orange-translucent) 0%,
         var(--clr-orange-glass) 100%
     );
-    margin-bottom: 40px;
+    margin-bottom: 30px; /* Reduced from 40px to 30px */
 }
 
 .search-container {
     position: relative;
     max-width: 800px; /* Increased from 600px to 800px to accommodate longer search bar */
-    margin: 30px auto 0;
+    margin: 15px auto 0; /* Reduced top margin from 30px to 15px */
 }
 
 .search-input-wrapper {

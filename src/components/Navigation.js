@@ -143,8 +143,6 @@ const Navigation = ({ account, setAccount, currentPage, setCurrentPage }) => {
                   Buy
                 </button>
               </li>
-              <li><button type="button" className="nav__link">Rent</button></li>
-              <li><button type="button" className="nav__link">Sell</button></li>
               <li>
                 <button 
                   type="button" 
