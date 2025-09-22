@@ -8,10 +8,10 @@ const IPFS_BASE_URL = "https://ipfs.io/ipfs/QmQVcpsjrA6cr1iJjZAodYwmPekYgbnXGo4D
 
 module.exports = buildModule("RealEstateDeployment", (m) => {
   // Get signers
-  const buyer = m.getAccount(0);
-  const seller = m.getAccount(1);
-  const inspector = m.getAccount(2);
-  const lender = m.getAccount(3);
+  const buyer = m.getAccount(12);
+  const seller = m.getAccount(13);
+  const inspector = m.getAccount(14);
+  const lender = m.getAccount(15);
 
   // Deploy RealEstate contract
   const realEstate = m.contract("RealEstate");
